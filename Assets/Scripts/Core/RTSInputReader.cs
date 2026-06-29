@@ -227,7 +227,7 @@ public class RTSInputReader : MonoBehaviour
             AddUnit(unit);
     }
 
-    private void AddUnit(UnitSelectable unit)
+    public void AddUnit(UnitSelectable unit)
     {
         if (selectedUnits.Contains(unit))
             return;
@@ -256,12 +256,17 @@ public class RTSInputReader : MonoBehaviour
         selectedMechs.RemoveAt(index);
     }
 
-    private void ClearSelection()
+    public void ClearSelection()
     {
         foreach (UnitSelectable unit in selectedUnits)
             unit.Deselect();
 
         selectedUnits.Clear();
         selectedMechs.Clear();
+    }
+
+    public IReadOnlyList<UnitSelectable> GetSelectedUnits()
+    {
+        return selectedUnits;
     }
 }

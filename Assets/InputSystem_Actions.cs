@@ -1229,6 +1229,572 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""RTSGroups"",
+            ""id"": ""2a25a547-8543-4007-8164-612e279e18d5"",
+            ""actions"": [
+                {
+                    ""name"": ""Group1"",
+                    ""type"": ""Button"",
+                    ""id"": ""d2a0b82e-e313-4e22-853a-0f88d7abf193"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group2"",
+                    ""type"": ""Button"",
+                    ""id"": ""0f46f1b8-a087-4573-ba16-d2b9413601ef"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group3"",
+                    ""type"": ""Button"",
+                    ""id"": ""84914827-0689-4cb9-a1b2-0d5ecd28c26b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group4"",
+                    ""type"": ""Button"",
+                    ""id"": ""0c624892-e8d6-4c11-8852-794c338a9ad0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group5"",
+                    ""type"": ""Button"",
+                    ""id"": ""5ebf670b-df44-476a-8791-228581b45952"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group6"",
+                    ""type"": ""Button"",
+                    ""id"": ""bc206b64-abc2-49db-8050-4061e3a7d750"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group7"",
+                    ""type"": ""Button"",
+                    ""id"": ""73747d7f-b3ff-4fe3-a5e5-8d1555457659"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group8"",
+                    ""type"": ""Button"",
+                    ""id"": ""6200dbfa-7cc8-4d06-ab31-f9ab3e71b01a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Group9"",
+                    ""type"": ""Button"",
+                    ""id"": ""8519e6ea-e685-4687-a7e5-62d53de6e4c7"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup1"",
+                    ""type"": ""Button"",
+                    ""id"": ""9f6f45e9-80f2-45f6-9548-0b898164456e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup2"",
+                    ""type"": ""Button"",
+                    ""id"": ""01b4374f-9286-49f4-8176-25a3288b7ada"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup3"",
+                    ""type"": ""Button"",
+                    ""id"": ""f6985244-dc5a-437a-8bc3-4727c72ef7df"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup4"",
+                    ""type"": ""Button"",
+                    ""id"": ""13ca2441-79c4-4448-b508-c9ce3490c8df"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup5"",
+                    ""type"": ""Button"",
+                    ""id"": ""5cfd8a4b-c0d0-4dde-a542-9daaae21548f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup6"",
+                    ""type"": ""Button"",
+                    ""id"": ""df640e51-5f90-40b7-a3da-5ade122874b5"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup7"",
+                    ""type"": ""Button"",
+                    ""id"": ""844d43d3-c421-40c4-b9a1-80727f267ab4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup8"",
+                    ""type"": ""Button"",
+                    ""id"": ""6cc681cb-65d2-4e3b-b2c8-3acf94ccece4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SetGroup9"",
+                    ""type"": ""Button"",
+                    ""id"": ""40fa39e2-ad09-4c79-adf1-d28b9fcd2991"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""3ca59bf2-cd40-4b28-acef-e0179027e40f"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""09692269-6459-4b36-a686-8b6f62943f9a"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7342645c-0ba3-459d-b636-a170d45a4ab2"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5d21e829-b979-4432-9d1d-010b19c272a6"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8b85cb84-dd60-49ea-8a5e-5ae8190834e2"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c3ae8f0d-ea30-4935-a5e7-abd50d646c21"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""206445cb-4dd1-4b63-9ddf-2d72dfb04b75"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group7"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""29fc77d2-43be-4d7e-9811-ce630986b222"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group8"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""49c73349-6e08-45d1-bc4d-eabba61fa855"",
+                    ""path"": ""<Keyboard>/9"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Group9"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""f34850a4-49bf-4331-a7e3-783e204bc81a"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup1"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""887b5917-0dd6-4d10-8849-520f89910957"",
+                    ""path"": ""<Keyboard>/ctrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""97db86a7-0499-4f61-b913-5df45ec6cd92"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""5bd6c7a7-3961-435e-b09d-d564d91d9b6c"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup2"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""b03de4b3-4100-4712-9a4c-3b5505cf544d"",
+                    ""path"": ""<Keyboard>/ctrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""f7f3a573-5e6f-4c33-badc-936318bd71f4"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""5f4d1fe2-2ebb-4428-b5a0-bd9c1855fe64"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup3"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""4bc0cc44-f9fd-4ecf-8d01-d197e80c2d48"",
+                    ""path"": ""<Keyboard>/ctrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""4977d4a8-208f-417d-aba1-3b0e938770d9"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""1bbe6f6d-77b7-46df-9798-476144dd69d9"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup4"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""ebc1a59e-db9c-488d-bba9-d5ffbad48320"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""efafff39-2617-4a3c-8865-0e782e5ca97d"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""d7b63073-0ea7-46b9-9540-69eddc4292c3"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup5"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""894902d7-8a49-4ee2-a052-82c61a7d53d8"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""6e35721a-de83-4b74-89e7-53da5c9589f4"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""60b3326e-13aa-4bbf-847d-2c42bb7dd547"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup6"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""850f3e23-b2c2-4712-ab27-85943be6f2e1"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""dc9a929e-1e6a-49d0-ba42-bf71782a8a5f"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""06f4bdeb-c400-44c9-9370-ee37f48b7fe9"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup7"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""9b12e205-7475-4dcf-82cf-5c497d25e7e7"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup7"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""8713129e-8608-4424-ae62-f7b51b047096"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup7"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""b6cc89ff-2b04-4194-916d-5239bf8f22b9"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup8"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""c0bcd8e0-7e46-4dea-87c6-389e754a44bb"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup8"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""71c580fb-645c-4ac0-a6f0-504bf3933bf6"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup8"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""e96a4b08-338a-4d9a-a97c-783fd78880f1"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup9"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""235ad4f3-f023-4a28-9f4f-3cf5d077660a"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup9"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""fa600164-97dd-43fb-8342-723f47d129e4"",
+                    ""path"": ""<Keyboard>/9"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SetGroup9"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -1324,6 +1890,26 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_RTS_Select = m_RTS.FindAction("Select", throwIfNotFound: true);
         m_RTS_Command = m_RTS.FindAction("Command", throwIfNotFound: true);
         m_RTS_AddSelect = m_RTS.FindAction("AddSelect", throwIfNotFound: true);
+        // RTSGroups
+        m_RTSGroups = asset.FindActionMap("RTSGroups", throwIfNotFound: true);
+        m_RTSGroups_Group1 = m_RTSGroups.FindAction("Group1", throwIfNotFound: true);
+        m_RTSGroups_Group2 = m_RTSGroups.FindAction("Group2", throwIfNotFound: true);
+        m_RTSGroups_Group3 = m_RTSGroups.FindAction("Group3", throwIfNotFound: true);
+        m_RTSGroups_Group4 = m_RTSGroups.FindAction("Group4", throwIfNotFound: true);
+        m_RTSGroups_Group5 = m_RTSGroups.FindAction("Group5", throwIfNotFound: true);
+        m_RTSGroups_Group6 = m_RTSGroups.FindAction("Group6", throwIfNotFound: true);
+        m_RTSGroups_Group7 = m_RTSGroups.FindAction("Group7", throwIfNotFound: true);
+        m_RTSGroups_Group8 = m_RTSGroups.FindAction("Group8", throwIfNotFound: true);
+        m_RTSGroups_Group9 = m_RTSGroups.FindAction("Group9", throwIfNotFound: true);
+        m_RTSGroups_SetGroup1 = m_RTSGroups.FindAction("SetGroup1", throwIfNotFound: true);
+        m_RTSGroups_SetGroup2 = m_RTSGroups.FindAction("SetGroup2", throwIfNotFound: true);
+        m_RTSGroups_SetGroup3 = m_RTSGroups.FindAction("SetGroup3", throwIfNotFound: true);
+        m_RTSGroups_SetGroup4 = m_RTSGroups.FindAction("SetGroup4", throwIfNotFound: true);
+        m_RTSGroups_SetGroup5 = m_RTSGroups.FindAction("SetGroup5", throwIfNotFound: true);
+        m_RTSGroups_SetGroup6 = m_RTSGroups.FindAction("SetGroup6", throwIfNotFound: true);
+        m_RTSGroups_SetGroup7 = m_RTSGroups.FindAction("SetGroup7", throwIfNotFound: true);
+        m_RTSGroups_SetGroup8 = m_RTSGroups.FindAction("SetGroup8", throwIfNotFound: true);
+        m_RTSGroups_SetGroup9 = m_RTSGroups.FindAction("SetGroup9", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -1331,6 +1917,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Player.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, InputSystem_Actions.UI.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_RTS.enabled, "This will cause a leak and performance issues, InputSystem_Actions.RTS.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_RTSGroups.enabled, "This will cause a leak and performance issues, InputSystem_Actions.RTSGroups.Disable() has not been called.");
     }
 
     /// <summary>
@@ -1921,6 +2508,289 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="RTSActions" /> instance referencing this action map.
     /// </summary>
     public RTSActions @RTS => new RTSActions(this);
+
+    // RTSGroups
+    private readonly InputActionMap m_RTSGroups;
+    private List<IRTSGroupsActions> m_RTSGroupsActionsCallbackInterfaces = new List<IRTSGroupsActions>();
+    private readonly InputAction m_RTSGroups_Group1;
+    private readonly InputAction m_RTSGroups_Group2;
+    private readonly InputAction m_RTSGroups_Group3;
+    private readonly InputAction m_RTSGroups_Group4;
+    private readonly InputAction m_RTSGroups_Group5;
+    private readonly InputAction m_RTSGroups_Group6;
+    private readonly InputAction m_RTSGroups_Group7;
+    private readonly InputAction m_RTSGroups_Group8;
+    private readonly InputAction m_RTSGroups_Group9;
+    private readonly InputAction m_RTSGroups_SetGroup1;
+    private readonly InputAction m_RTSGroups_SetGroup2;
+    private readonly InputAction m_RTSGroups_SetGroup3;
+    private readonly InputAction m_RTSGroups_SetGroup4;
+    private readonly InputAction m_RTSGroups_SetGroup5;
+    private readonly InputAction m_RTSGroups_SetGroup6;
+    private readonly InputAction m_RTSGroups_SetGroup7;
+    private readonly InputAction m_RTSGroups_SetGroup8;
+    private readonly InputAction m_RTSGroups_SetGroup9;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "RTSGroups".
+    /// </summary>
+    public struct RTSGroupsActions
+    {
+        private @InputSystem_Actions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public RTSGroupsActions(@InputSystem_Actions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group1".
+        /// </summary>
+        public InputAction @Group1 => m_Wrapper.m_RTSGroups_Group1;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group2".
+        /// </summary>
+        public InputAction @Group2 => m_Wrapper.m_RTSGroups_Group2;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group3".
+        /// </summary>
+        public InputAction @Group3 => m_Wrapper.m_RTSGroups_Group3;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group4".
+        /// </summary>
+        public InputAction @Group4 => m_Wrapper.m_RTSGroups_Group4;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group5".
+        /// </summary>
+        public InputAction @Group5 => m_Wrapper.m_RTSGroups_Group5;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group6".
+        /// </summary>
+        public InputAction @Group6 => m_Wrapper.m_RTSGroups_Group6;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group7".
+        /// </summary>
+        public InputAction @Group7 => m_Wrapper.m_RTSGroups_Group7;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group8".
+        /// </summary>
+        public InputAction @Group8 => m_Wrapper.m_RTSGroups_Group8;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/Group9".
+        /// </summary>
+        public InputAction @Group9 => m_Wrapper.m_RTSGroups_Group9;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup1".
+        /// </summary>
+        public InputAction @SetGroup1 => m_Wrapper.m_RTSGroups_SetGroup1;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup2".
+        /// </summary>
+        public InputAction @SetGroup2 => m_Wrapper.m_RTSGroups_SetGroup2;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup3".
+        /// </summary>
+        public InputAction @SetGroup3 => m_Wrapper.m_RTSGroups_SetGroup3;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup4".
+        /// </summary>
+        public InputAction @SetGroup4 => m_Wrapper.m_RTSGroups_SetGroup4;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup5".
+        /// </summary>
+        public InputAction @SetGroup5 => m_Wrapper.m_RTSGroups_SetGroup5;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup6".
+        /// </summary>
+        public InputAction @SetGroup6 => m_Wrapper.m_RTSGroups_SetGroup6;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup7".
+        /// </summary>
+        public InputAction @SetGroup7 => m_Wrapper.m_RTSGroups_SetGroup7;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup8".
+        /// </summary>
+        public InputAction @SetGroup8 => m_Wrapper.m_RTSGroups_SetGroup8;
+        /// <summary>
+        /// Provides access to the underlying input action "RTSGroups/SetGroup9".
+        /// </summary>
+        public InputAction @SetGroup9 => m_Wrapper.m_RTSGroups_SetGroup9;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_RTSGroups; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="RTSGroupsActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(RTSGroupsActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="RTSGroupsActions" />
+        public void AddCallbacks(IRTSGroupsActions instance)
+        {
+            if (instance == null || m_Wrapper.m_RTSGroupsActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_RTSGroupsActionsCallbackInterfaces.Add(instance);
+            @Group1.started += instance.OnGroup1;
+            @Group1.performed += instance.OnGroup1;
+            @Group1.canceled += instance.OnGroup1;
+            @Group2.started += instance.OnGroup2;
+            @Group2.performed += instance.OnGroup2;
+            @Group2.canceled += instance.OnGroup2;
+            @Group3.started += instance.OnGroup3;
+            @Group3.performed += instance.OnGroup3;
+            @Group3.canceled += instance.OnGroup3;
+            @Group4.started += instance.OnGroup4;
+            @Group4.performed += instance.OnGroup4;
+            @Group4.canceled += instance.OnGroup4;
+            @Group5.started += instance.OnGroup5;
+            @Group5.performed += instance.OnGroup5;
+            @Group5.canceled += instance.OnGroup5;
+            @Group6.started += instance.OnGroup6;
+            @Group6.performed += instance.OnGroup6;
+            @Group6.canceled += instance.OnGroup6;
+            @Group7.started += instance.OnGroup7;
+            @Group7.performed += instance.OnGroup7;
+            @Group7.canceled += instance.OnGroup7;
+            @Group8.started += instance.OnGroup8;
+            @Group8.performed += instance.OnGroup8;
+            @Group8.canceled += instance.OnGroup8;
+            @Group9.started += instance.OnGroup9;
+            @Group9.performed += instance.OnGroup9;
+            @Group9.canceled += instance.OnGroup9;
+            @SetGroup1.started += instance.OnSetGroup1;
+            @SetGroup1.performed += instance.OnSetGroup1;
+            @SetGroup1.canceled += instance.OnSetGroup1;
+            @SetGroup2.started += instance.OnSetGroup2;
+            @SetGroup2.performed += instance.OnSetGroup2;
+            @SetGroup2.canceled += instance.OnSetGroup2;
+            @SetGroup3.started += instance.OnSetGroup3;
+            @SetGroup3.performed += instance.OnSetGroup3;
+            @SetGroup3.canceled += instance.OnSetGroup3;
+            @SetGroup4.started += instance.OnSetGroup4;
+            @SetGroup4.performed += instance.OnSetGroup4;
+            @SetGroup4.canceled += instance.OnSetGroup4;
+            @SetGroup5.started += instance.OnSetGroup5;
+            @SetGroup5.performed += instance.OnSetGroup5;
+            @SetGroup5.canceled += instance.OnSetGroup5;
+            @SetGroup6.started += instance.OnSetGroup6;
+            @SetGroup6.performed += instance.OnSetGroup6;
+            @SetGroup6.canceled += instance.OnSetGroup6;
+            @SetGroup7.started += instance.OnSetGroup7;
+            @SetGroup7.performed += instance.OnSetGroup7;
+            @SetGroup7.canceled += instance.OnSetGroup7;
+            @SetGroup8.started += instance.OnSetGroup8;
+            @SetGroup8.performed += instance.OnSetGroup8;
+            @SetGroup8.canceled += instance.OnSetGroup8;
+            @SetGroup9.started += instance.OnSetGroup9;
+            @SetGroup9.performed += instance.OnSetGroup9;
+            @SetGroup9.canceled += instance.OnSetGroup9;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="RTSGroupsActions" />
+        private void UnregisterCallbacks(IRTSGroupsActions instance)
+        {
+            @Group1.started -= instance.OnGroup1;
+            @Group1.performed -= instance.OnGroup1;
+            @Group1.canceled -= instance.OnGroup1;
+            @Group2.started -= instance.OnGroup2;
+            @Group2.performed -= instance.OnGroup2;
+            @Group2.canceled -= instance.OnGroup2;
+            @Group3.started -= instance.OnGroup3;
+            @Group3.performed -= instance.OnGroup3;
+            @Group3.canceled -= instance.OnGroup3;
+            @Group4.started -= instance.OnGroup4;
+            @Group4.performed -= instance.OnGroup4;
+            @Group4.canceled -= instance.OnGroup4;
+            @Group5.started -= instance.OnGroup5;
+            @Group5.performed -= instance.OnGroup5;
+            @Group5.canceled -= instance.OnGroup5;
+            @Group6.started -= instance.OnGroup6;
+            @Group6.performed -= instance.OnGroup6;
+            @Group6.canceled -= instance.OnGroup6;
+            @Group7.started -= instance.OnGroup7;
+            @Group7.performed -= instance.OnGroup7;
+            @Group7.canceled -= instance.OnGroup7;
+            @Group8.started -= instance.OnGroup8;
+            @Group8.performed -= instance.OnGroup8;
+            @Group8.canceled -= instance.OnGroup8;
+            @Group9.started -= instance.OnGroup9;
+            @Group9.performed -= instance.OnGroup9;
+            @Group9.canceled -= instance.OnGroup9;
+            @SetGroup1.started -= instance.OnSetGroup1;
+            @SetGroup1.performed -= instance.OnSetGroup1;
+            @SetGroup1.canceled -= instance.OnSetGroup1;
+            @SetGroup2.started -= instance.OnSetGroup2;
+            @SetGroup2.performed -= instance.OnSetGroup2;
+            @SetGroup2.canceled -= instance.OnSetGroup2;
+            @SetGroup3.started -= instance.OnSetGroup3;
+            @SetGroup3.performed -= instance.OnSetGroup3;
+            @SetGroup3.canceled -= instance.OnSetGroup3;
+            @SetGroup4.started -= instance.OnSetGroup4;
+            @SetGroup4.performed -= instance.OnSetGroup4;
+            @SetGroup4.canceled -= instance.OnSetGroup4;
+            @SetGroup5.started -= instance.OnSetGroup5;
+            @SetGroup5.performed -= instance.OnSetGroup5;
+            @SetGroup5.canceled -= instance.OnSetGroup5;
+            @SetGroup6.started -= instance.OnSetGroup6;
+            @SetGroup6.performed -= instance.OnSetGroup6;
+            @SetGroup6.canceled -= instance.OnSetGroup6;
+            @SetGroup7.started -= instance.OnSetGroup7;
+            @SetGroup7.performed -= instance.OnSetGroup7;
+            @SetGroup7.canceled -= instance.OnSetGroup7;
+            @SetGroup8.started -= instance.OnSetGroup8;
+            @SetGroup8.performed -= instance.OnSetGroup8;
+            @SetGroup8.canceled -= instance.OnSetGroup8;
+            @SetGroup9.started -= instance.OnSetGroup9;
+            @SetGroup9.performed -= instance.OnSetGroup9;
+            @SetGroup9.canceled -= instance.OnSetGroup9;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="RTSGroupsActions.UnregisterCallbacks(IRTSGroupsActions)" />.
+        /// </summary>
+        /// <seealso cref="RTSGroupsActions.UnregisterCallbacks(IRTSGroupsActions)" />
+        public void RemoveCallbacks(IRTSGroupsActions instance)
+        {
+            if (m_Wrapper.m_RTSGroupsActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="RTSGroupsActions.AddCallbacks(IRTSGroupsActions)" />
+        /// <seealso cref="RTSGroupsActions.RemoveCallbacks(IRTSGroupsActions)" />
+        /// <seealso cref="RTSGroupsActions.UnregisterCallbacks(IRTSGroupsActions)" />
+        public void SetCallbacks(IRTSGroupsActions instance)
+        {
+            foreach (var item in m_Wrapper.m_RTSGroupsActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_RTSGroupsActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="RTSGroupsActions" /> instance referencing this action map.
+    /// </summary>
+    public RTSGroupsActions @RTSGroups => new RTSGroupsActions(this);
     private int m_KeyboardMouseSchemeIndex = -1;
     /// <summary>
     /// Provides access to the input control scheme.
@@ -2177,5 +3047,139 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAddSelect(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "RTSGroups" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="RTSGroupsActions.AddCallbacks(IRTSGroupsActions)" />
+    /// <seealso cref="RTSGroupsActions.RemoveCallbacks(IRTSGroupsActions)" />
+    public interface IRTSGroupsActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Group1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup2(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup3(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group4" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup4(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group5" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup5(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group6" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup6(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group7" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup7(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group8" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup8(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Group9" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGroup9(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup2(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup3(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup4" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup4(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup5" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup5(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup6" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup6(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup7" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup7(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup8" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup8(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SetGroup9" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSetGroup9(InputAction.CallbackContext context);
     }
 }
