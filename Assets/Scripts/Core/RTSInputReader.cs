@@ -159,13 +159,25 @@ public class RTSInputReader : MonoBehaviour
         int columns = Mathf.CeilToInt(Mathf.Sqrt(count));
         int rows = Mathf.CeilToInt((float)count / columns);
 
-        Vector3 cameraForward = mainCamera.transform.forward;
-        cameraForward.y = 0f;
-        cameraForward.Normalize();
+        Vector3 groupCenter = Vector3.zero;
 
-        Vector3 cameraRight = mainCamera.transform.right;
-        cameraRight.y = 0f;
-        cameraRight.Normalize();
+        foreach (MechMovement mech in selectedMechs)
+            groupCenter += mech.transform.position;
+
+        groupCenter /= count;
+
+        Vector3 moveForward = centerPoint - groupCenter;
+        moveForward.y = 0f;
+
+        if (moveForward.sqrMagnitude < 0.01f)
+        {
+            moveForward = mainCamera.transform.forward;
+            moveForward.y = 0f;
+        }
+
+        moveForward.Normalize();
+
+        Vector3 moveRight = Vector3.Cross(Vector3.up, moveForward).normalized;
 
         for (int i = 0; i < count; i++)
         {
@@ -177,8 +189,8 @@ public class RTSInputReader : MonoBehaviour
 
             Vector3 targetPosition =
                 centerPoint +
-                cameraRight * xOffset -
-                cameraForward * zOffset;
+                moveRight * xOffset -
+                moveForward * zOffset;
 
             targetPosition = GetNearestNavMeshPoint(targetPosition);
 
