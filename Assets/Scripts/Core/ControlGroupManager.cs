@@ -5,10 +5,17 @@ using UnityEngine.InputSystem;
 public class ControlGroupManager : MonoBehaviour
 {
     [SerializeField] private RTSInputReader rtsInputReader;
+    [SerializeField] private RTSCameraController cameraController;
+
+    [Header("Double Tap")]
+    [SerializeField] private float doubleTapTime = 0.35f;
 
     private InputSystem_Actions inputActions;
 
     private readonly Dictionary<int, List<UnitSelectable>> controlGroups = new();
+
+    private int lastSelectedGroup = -1;
+    private float lastSelectTime;
 
     private void Awake()
     {
@@ -16,6 +23,9 @@ public class ControlGroupManager : MonoBehaviour
 
         if (rtsInputReader == null)
             rtsInputReader = GetComponent<RTSInputReader>();
+
+        if (cameraController == null)
+            cameraController = FindFirstObjectByType<RTSCameraController>();
     }
 
     private void OnEnable()
@@ -65,6 +75,13 @@ public class ControlGroupManager : MonoBehaviour
         if (!controlGroups.TryGetValue(groupNumber, out List<UnitSelectable> group))
             return;
 
+        bool isDoubleTap =
+            lastSelectedGroup == groupNumber &&
+            Time.time - lastSelectTime <= doubleTapTime;
+
+        lastSelectedGroup = groupNumber;
+        lastSelectTime = Time.time;
+
         rtsInputReader.ClearSelection();
 
         for (int i = group.Count - 1; i >= 0; i--)
@@ -81,5 +98,33 @@ public class ControlGroupManager : MonoBehaviour
         }
 
         Debug.Log($"Selected control group {groupNumber}: {group.Count} unit(s)");
+
+        if (isDoubleTap)
+            FocusCameraOnGroup(group);
+    }
+
+    private void FocusCameraOnGroup(List<UnitSelectable> group)
+    {
+        if (cameraController == null || group.Count == 0)
+            return;
+
+        Vector3 center = Vector3.zero;
+        int validUnits = 0;
+
+        foreach (UnitSelectable unit in group)
+        {
+            if (unit == null)
+                continue;
+
+            center += unit.transform.position;
+            validUnits++;
+        }
+
+        if (validUnits == 0)
+            return;
+
+        center /= validUnits;
+
+        cameraController.FocusOnPoint(center);
     }
 }

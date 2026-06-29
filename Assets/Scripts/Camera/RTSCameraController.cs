@@ -87,4 +87,14 @@ public class RTSCameraController : MonoBehaviour
 
         transform.position = pos;
     }
+
+    public void FocusOnPoint(Vector3 point)
+    {
+        Vector3 newPosition = transform.position;
+
+        newPosition.x = point.x;
+        newPosition.z = point.z - 20f;
+
+        transform.position = newPosition;
+    }
 }
