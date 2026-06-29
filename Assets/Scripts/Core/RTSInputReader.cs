@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem;
 
 public class RTSInputReader : MonoBehaviour
@@ -8,7 +9,12 @@ public class RTSInputReader : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask unitLayer;
     [SerializeField] private SelectionBoxUI selectionBoxUI;
+
+    [Header("Selection")]
     [SerializeField] private float dragThreshold = 10f;
+
+    [Header("Formation")]
+    [SerializeField] private float formationSpacing = 3f;
 
     private InputSystem_Actions inputActions;
 
@@ -33,7 +39,6 @@ public class RTSInputReader : MonoBehaviour
 
         inputActions.RTS.Select.started += OnSelectStarted;
         inputActions.RTS.Select.canceled += OnSelectCanceled;
-
         inputActions.RTS.Command.performed += OnCommand;
     }
 
@@ -41,7 +46,6 @@ public class RTSInputReader : MonoBehaviour
     {
         inputActions.RTS.Select.started -= OnSelectStarted;
         inputActions.RTS.Select.canceled -= OnSelectCanceled;
-
         inputActions.RTS.Command.performed -= OnCommand;
 
         inputActions.RTS.Disable();
@@ -144,11 +148,50 @@ public class RTSInputReader : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, 500f, groundLayer))
         {
-            foreach (MechMovement mech in selectedMechs)
-            {
-                mech.MoveTo(hit.point);
-            }
+            MoveSelectedMechsInFormation(hit.point);
         }
+    }
+
+    private void MoveSelectedMechsInFormation(Vector3 centerPoint)
+    {
+        int count = selectedMechs.Count;
+
+        int columns = Mathf.CeilToInt(Mathf.Sqrt(count));
+        int rows = Mathf.CeilToInt((float)count / columns);
+
+        Vector3 cameraForward = mainCamera.transform.forward;
+        cameraForward.y = 0f;
+        cameraForward.Normalize();
+
+        Vector3 cameraRight = mainCamera.transform.right;
+        cameraRight.y = 0f;
+        cameraRight.Normalize();
+
+        for (int i = 0; i < count; i++)
+        {
+            int row = i / columns;
+            int column = i % columns;
+
+            float xOffset = (column - (columns - 1) * 0.5f) * formationSpacing;
+            float zOffset = (row - (rows - 1) * 0.5f) * formationSpacing;
+
+            Vector3 targetPosition =
+                centerPoint +
+                cameraRight * xOffset -
+                cameraForward * zOffset;
+
+            targetPosition = GetNearestNavMeshPoint(targetPosition);
+
+            selectedMechs[i].MoveTo(targetPosition);
+        }
+    }
+
+    private Vector3 GetNearestNavMeshPoint(Vector3 point)
+    {
+        if (NavMesh.SamplePosition(point, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            return hit.position;
+
+        return point;
     }
 
     private void SelectOnly(UnitSelectable unit)
