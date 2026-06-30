@@ -1610,6 +1610,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControlGroupManager
   rtsInputReader: {fileID: 1740777043}
+  cameraController: {fileID: 330585548}
+  doubleTapTime: 0.35
 --- !u!1 &1811589581
 GameObject:
   m_ObjectHideFlags: 0
