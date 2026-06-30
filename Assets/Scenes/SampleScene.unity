@@ -677,6 +677,8 @@ GameObject:
   - component: {fileID: 427281602}
   - component: {fileID: 427281601}
   - component: {fileID: 427281603}
+  - component: {fileID: 427281604}
+  - component: {fileID: 427281605}
   m_Layer: 6
   m_Name: Mech
   m_TagString: Untagged
@@ -827,6 +829,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitSelectable
   selectionIndicator: {fileID: 1419326537}
+--- !u!114 &427281604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 427281596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea205fdb5f4bb524d90414a2c1325681, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxHealth: 100
+--- !u!114 &427281605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 427281596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  damage: 10
+  range: 12
+  cooldown: 1
 --- !u!1 &607138334
 GameObject:
   m_ObjectHideFlags: 0
@@ -1034,6 +1064,8 @@ GameObject:
   - component: {fileID: 748871366}
   - component: {fileID: 748871365}
   - component: {fileID: 748871364}
+  - component: {fileID: 748871371}
+  - component: {fileID: 748871373}
   m_Layer: 6
   m_Name: Mech (1)
   m_TagString: Untagged
@@ -1184,6 +1216,34 @@ Transform:
   - {fileID: 2062780146}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &748871371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748871363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea205fdb5f4bb524d90414a2c1325681, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxHealth: 100
+--- !u!114 &748871373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748871363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  damage: 10
+  range: 12
+  cooldown: 1
 --- !u!1 &776146450
 GameObject:
   m_ObjectHideFlags: 0
@@ -1392,6 +1452,8 @@ GameObject:
   - component: {fileID: 1475212527}
   - component: {fileID: 1475212526}
   - component: {fileID: 1475212525}
+  - component: {fileID: 1475212532}
+  - component: {fileID: 1475212533}
   m_Layer: 6
   m_Name: Mech (2)
   m_TagString: Untagged
@@ -1542,6 +1604,34 @@ Transform:
   - {fileID: 304658830}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1475212532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475212524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea205fdb5f4bb524d90414a2c1325681, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxHealth: 100
+--- !u!114 &1475212533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475212524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  damage: 10
+  range: 12
+  cooldown: 1
 --- !u!1 &1740777042
 GameObject:
   m_ObjectHideFlags: 0
@@ -1627,6 +1717,8 @@ GameObject:
   - component: {fileID: 1811589584}
   - component: {fileID: 1811589583}
   - component: {fileID: 1811589582}
+  - component: {fileID: 1811589589}
+  - component: {fileID: 1811589590}
   m_Layer: 6
   m_Name: Mech (3)
   m_TagString: Untagged
@@ -1777,6 +1869,34 @@ Transform:
   - {fileID: 1947488887}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1811589589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811589581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea205fdb5f4bb524d90414a2c1325681, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxHealth: 100
+--- !u!114 &1811589590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811589581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  damage: 10
+  range: 12
+  cooldown: 1
 --- !u!1 &1947488883
 GameObject:
   m_ObjectHideFlags: 0
