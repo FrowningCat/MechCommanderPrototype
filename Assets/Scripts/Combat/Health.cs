@@ -1,21 +1,29 @@
 using UnityEngine;
 
-public class Health : MonoBehaviour
+public class Health : MonoBehaviour, ITargetable
 {
     [SerializeField] private int maxHealth = 100;
 
     private int currentHealth;
+    private bool isAlive = true;
 
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
 
+    public Transform Transform => transform;
+    public bool IsAlive => isAlive;
+
     private void Awake()
     {
         currentHealth = maxHealth;
+        isAlive = true;
     }
 
     public void TakeDamage(int damage)
     {
+        if (!isAlive)
+            return;
+
         if (damage <= 0)
             return;
 
@@ -32,6 +40,9 @@ public class Health : MonoBehaviour
 
     public void Heal(int amount)
     {
+        if (!isAlive)
+            return;
+
         if (amount <= 0)
             return;
 
@@ -41,8 +52,13 @@ public class Health : MonoBehaviour
 
     private void Die()
     {
+        if (!isAlive)
+            return;
+
+        isAlive = false;
+
         Debug.Log($"{gameObject.name} destroyed");
+
         Destroy(gameObject);
     }
-
 }
