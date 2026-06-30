@@ -150,7 +150,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""Previous"",
                     ""type"": ""Button"",
                     ""id"": ""2776c80d-3c14-4091-8c56-d04ced07a2b0"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -1126,6 +1126,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AttackMove"",
+                    ""type"": ""Button"",
+                    ""id"": ""f3b78d54-98d6-4d2c-a48e-02500b9792e8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -1166,17 +1175,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""down"",
                     ""id"": ""922681c0-9700-4a4e-9376-793fa798b504"",
                     ""path"": ""<Keyboard>/s"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""CameraMove"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""74097f8b-ddff-4d14-b538-69253ae3d334"",
-                    ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1227,6 +1225,39 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""AddSelect"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""06391dc9-1adc-4a48-b1c0-86d20705733e"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AttackMove"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""c9b7391e-4e82-45b2-9a4b-2999bf2fd9c0"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AttackMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""07091af9-12c2-4e4a-b48f-33c585a4eefe"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AttackMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -1890,6 +1921,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_RTS_Select = m_RTS.FindAction("Select", throwIfNotFound: true);
         m_RTS_Command = m_RTS.FindAction("Command", throwIfNotFound: true);
         m_RTS_AddSelect = m_RTS.FindAction("AddSelect", throwIfNotFound: true);
+        m_RTS_AttackMove = m_RTS.FindAction("AttackMove", throwIfNotFound: true);
         // RTSGroups
         m_RTSGroups = asset.FindActionMap("RTSGroups", throwIfNotFound: true);
         m_RTSGroups_Group1 = m_RTSGroups.FindAction("Group1", throwIfNotFound: true);
@@ -2377,6 +2409,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_RTS_Select;
     private readonly InputAction m_RTS_Command;
     private readonly InputAction m_RTS_AddSelect;
+    private readonly InputAction m_RTS_AttackMove;
     /// <summary>
     /// Provides access to input actions defined in input action map "RTS".
     /// </summary>
@@ -2408,6 +2441,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "RTS/AddSelect".
         /// </summary>
         public InputAction @AddSelect => m_Wrapper.m_RTS_AddSelect;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/AttackMove".
+        /// </summary>
+        public InputAction @AttackMove => m_Wrapper.m_RTS_AttackMove;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -2449,6 +2486,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @AddSelect.started += instance.OnAddSelect;
             @AddSelect.performed += instance.OnAddSelect;
             @AddSelect.canceled += instance.OnAddSelect;
+            @AttackMove.started += instance.OnAttackMove;
+            @AttackMove.performed += instance.OnAttackMove;
+            @AttackMove.canceled += instance.OnAttackMove;
         }
 
         /// <summary>
@@ -2475,6 +2515,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @AddSelect.started -= instance.OnAddSelect;
             @AddSelect.performed -= instance.OnAddSelect;
             @AddSelect.canceled -= instance.OnAddSelect;
+            @AttackMove.started -= instance.OnAttackMove;
+            @AttackMove.performed -= instance.OnAttackMove;
+            @AttackMove.canceled -= instance.OnAttackMove;
         }
 
         /// <summary>
@@ -3047,6 +3090,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAddSelect(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "AttackMove" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnAttackMove(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "RTSGroups" which allows adding and removing callbacks.

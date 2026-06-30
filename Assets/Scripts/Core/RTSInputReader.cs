@@ -16,6 +16,7 @@ public class RTSInputReader : MonoBehaviour
 
     [Header("Formation")]
     [SerializeField] private float formationSpacing = 3f;
+    private bool isAttackMoveMode;
 
     private InputSystem_Actions inputActions;
 
@@ -42,6 +43,7 @@ public class RTSInputReader : MonoBehaviour
         inputActions.RTS.Select.started += OnSelectStarted;
         inputActions.RTS.Select.canceled += OnSelectCanceled;
         inputActions.RTS.Command.performed += OnCommand;
+        inputActions.RTS.AttackMove.performed += OnAttackMove;
     }
 
     private void OnDisable()
@@ -49,8 +51,15 @@ public class RTSInputReader : MonoBehaviour
         inputActions.RTS.Select.started -= OnSelectStarted;
         inputActions.RTS.Select.canceled -= OnSelectCanceled;
         inputActions.RTS.Command.performed -= OnCommand;
+        inputActions.RTS.AttackMove.performed -= OnAttackMove;
 
         inputActions.RTS.Disable();
+    }
+
+    private void OnAttackMove(InputAction.CallbackContext context)
+    {
+        isAttackMoveMode = true;
+        Debug.Log("Attack Move Mode");
     }
 
     private void Update()
@@ -169,9 +178,23 @@ public class RTSInputReader : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, 500f, groundLayer))
         {
-            foreach (MechCombat combat in selectedCombatUnits)
+            bool attackMovePressed = inputActions.RTS.AttackMove.IsPressed();
+
+            if (isAttackMoveMode || attackMovePressed)
             {
-                combat.ClearTarget();
+                foreach (MechCombat combat in selectedCombatUnits)
+                {
+                    combat.SetAttackMoveDestination(hit.point);
+                }
+
+                isAttackMoveMode = false;
+            }
+            else
+            {
+                foreach (MechCombat combat in selectedCombatUnits)
+                {
+                    combat.ClearTarget();
+                }
             }
 
             MoveSelectedMechsInFormation(hit.point);
