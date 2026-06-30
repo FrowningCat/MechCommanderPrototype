@@ -7,6 +7,7 @@ public class RTSInputReader : MonoBehaviour
 {
     [SerializeField] private Camera mainCamera;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private LayerMask unitLayer;
     [SerializeField] private SelectionBoxUI selectionBoxUI;
 
@@ -20,6 +21,7 @@ public class RTSInputReader : MonoBehaviour
 
     private readonly List<UnitSelectable> selectedUnits = new();
     private readonly List<MechMovement> selectedMechs = new();
+    private readonly List<MechCombat> selectedCombatUnits = new();
 
     private bool isDragging;
     private Vector2 dragStartPos;
@@ -144,10 +146,34 @@ public class RTSInputReader : MonoBehaviour
         if (selectedMechs.Count == 0)
             return;
 
-        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Ray ray =
+            mainCamera.ScreenPointToRay(
+                Mouse.current.position.ReadValue()
+            );
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 500f, groundLayer))
+        if (Physics.Raycast(ray, out RaycastHit hit, 500f, enemyLayer))
         {
+            Health target =
+                hit.collider.GetComponentInParent<Health>();
+
+            if (target != null)
+            {
+                foreach (MechCombat combat in selectedCombatUnits)
+                {
+                    combat.SetTarget(target);
+                }
+            }
+
+            return;
+        }
+
+        if (Physics.Raycast(ray, out hit, 500f, groundLayer))
+        {
+            foreach (MechCombat combat in selectedCombatUnits)
+            {
+                combat.ClearTarget();
+            }
+
             MoveSelectedMechsInFormation(hit.point);
         }
     }
@@ -233,12 +259,18 @@ public class RTSInputReader : MonoBehaviour
             return;
 
         MechMovement mechMovement = unit.GetComponent<MechMovement>();
+        MechCombat combat = unit.GetComponent<MechCombat>();
 
         if (mechMovement == null)
             return;
 
         selectedUnits.Add(unit);
         selectedMechs.Add(mechMovement);
+
+        if (combat != null)
+        {
+            selectedCombatUnits.Add(combat);
+        }
 
         unit.Select();
     }
@@ -254,6 +286,11 @@ public class RTSInputReader : MonoBehaviour
 
         selectedUnits.RemoveAt(index);
         selectedMechs.RemoveAt(index);
+
+        if (index < selectedCombatUnits.Count)
+        {
+            selectedCombatUnits.RemoveAt(index);
+        }
     }
 
     public void ClearSelection()
@@ -263,6 +300,7 @@ public class RTSInputReader : MonoBehaviour
 
         selectedUnits.Clear();
         selectedMechs.Clear();
+        selectedCombatUnits.Clear();
     }
 
     public IReadOnlyList<UnitSelectable> GetSelectedUnits()
