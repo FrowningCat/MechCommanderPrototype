@@ -13,6 +13,8 @@ public class Health : MonoBehaviour, ITargetable
     public Transform Transform => transform;
     public bool IsAlive => isAlive;
 
+    public event System.Action OnDamaged;
+
     private void Awake()
     {
         currentHealth = maxHealth;
@@ -28,6 +30,8 @@ public class Health : MonoBehaviour, ITargetable
             return;
 
         currentHealth -= damage;
+
+        OnDamaged?.Invoke();
 
         Debug.Log($"{gameObject.name} took {damage} damage. HP = {currentHealth}");
 
