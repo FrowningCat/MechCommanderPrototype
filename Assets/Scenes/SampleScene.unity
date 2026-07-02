@@ -302,6 +302,19 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 32916648432581267, guid: dfa1e3962227fe44a8efbdd4acab85bf, type: 3}
   m_PrefabInstance: {fileID: 5398444764034648898}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &81310774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 81310760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c421c78a70298e4ea7ea2728310d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MechWeaponSystem
+  fireMode: 0
 --- !u!1 &197703708
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,6 +1001,7 @@ GameObject:
   - component: {fileID: 427281604}
   - component: {fileID: 427281605}
   - component: {fileID: 427281606}
+  - component: {fileID: 427281607}
   m_Layer: 6
   m_Name: Mech
   m_TagString: Untagged
@@ -1152,6 +1166,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
+  armorValue: 0
 --- !u!114 &427281605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1164,9 +1179,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  weaponType: 0
   damage: 10
   range: 12
   cooldown: 1
+  heatPerShot: 10
 --- !u!114 &427281606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1187,6 +1204,19 @@ MonoBehaviour:
   leashRange: 14
   guardFollowDistance: 4
   patrolWaypointThreshold: 0.5
+--- !u!114 &427281607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 427281596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c421c78a70298e4ea7ea2728310d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MechWeaponSystem
+  fireMode: 0
 --- !u!1 &607138334
 GameObject:
   m_ObjectHideFlags: 0
@@ -1472,6 +1502,7 @@ GameObject:
   - component: {fileID: 748871371}
   - component: {fileID: 748871373}
   - component: {fileID: 748871374}
+  - component: {fileID: 748871375}
   m_Layer: 6
   m_Name: Mech (1)
   m_TagString: Untagged
@@ -1636,6 +1667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
+  armorValue: 0
 --- !u!114 &748871373
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1648,9 +1680,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  weaponType: 0
   damage: 10
   range: 12
   cooldown: 1
+  heatPerShot: 10
 --- !u!114 &748871374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1671,6 +1705,19 @@ MonoBehaviour:
   leashRange: 14
   guardFollowDistance: 4
   patrolWaypointThreshold: 0.5
+--- !u!114 &748871375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748871363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c421c78a70298e4ea7ea2728310d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MechWeaponSystem
+  fireMode: 0
 --- !u!1 &776146450
 GameObject:
   m_ObjectHideFlags: 0
@@ -2349,6 +2396,7 @@ GameObject:
   - component: {fileID: 1475212532}
   - component: {fileID: 1475212533}
   - component: {fileID: 1475212534}
+  - component: {fileID: 1475212535}
   m_Layer: 6
   m_Name: Mech (2)
   m_TagString: Untagged
@@ -2513,6 +2561,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
+  armorValue: 0
 --- !u!114 &1475212533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2525,9 +2574,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  weaponType: 0
   damage: 10
   range: 12
   cooldown: 1
+  heatPerShot: 10
 --- !u!114 &1475212534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2548,6 +2599,19 @@ MonoBehaviour:
   leashRange: 14
   guardFollowDistance: 4
   patrolWaypointThreshold: 0.5
+--- !u!114 &1475212535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475212524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c421c78a70298e4ea7ea2728310d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MechWeaponSystem
+  fireMode: 0
 --- !u!1 &1607596557
 GameObject:
   m_ObjectHideFlags: 0
@@ -3106,6 +3170,7 @@ GameObject:
   - component: {fileID: 1811589589}
   - component: {fileID: 1811589590}
   - component: {fileID: 1811589591}
+  - component: {fileID: 1811589592}
   m_Layer: 6
   m_Name: Mech (3)
   m_TagString: Untagged
@@ -3270,6 +3335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
+  armorValue: 0
 --- !u!114 &1811589590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3282,9 +3348,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b5b8dd1ab4a88e429b37fa998a41a51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  weaponType: 0
   damage: 10
   range: 12
   cooldown: 1
+  heatPerShot: 10
 --- !u!114 &1811589591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3305,6 +3373,19 @@ MonoBehaviour:
   leashRange: 14
   guardFollowDistance: 4
   patrolWaypointThreshold: 0.5
+--- !u!114 &1811589592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811589581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c421c78a70298e4ea7ea2728310d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MechWeaponSystem
+  fireMode: 0
 --- !u!1 &1947488883
 GameObject:
   m_ObjectHideFlags: 0
@@ -3660,6 +3741,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy
       objectReference: {fileID: 0}
+    - target: {fileID: 6793333532220081571, guid: dfa1e3962227fe44a8efbdd4acab85bf, type: 3}
+      propertyPath: armorValue
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -3670,6 +3755,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2108808681155684212, guid: dfa1e3962227fe44a8efbdd4acab85bf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 81310761}
+    - targetCorrespondingSourceObject: {fileID: 2108808681155684212, guid: dfa1e3962227fe44a8efbdd4acab85bf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 81310774}
   m_SourcePrefab: {fileID: 100100000, guid: dfa1e3962227fe44a8efbdd4acab85bf, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

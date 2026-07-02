@@ -8,13 +8,13 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private LayerMask targetLayer;
 
     private NavMeshAgent agent;
-    private Weapon weapon;
+    private MechWeaponSystem weaponSystem;
     private ITargetable currentTarget;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        weapon = GetComponent<Weapon>();
+        weaponSystem = GetComponent<MechWeaponSystem>();
     }
 
     private void Update()
@@ -27,7 +27,7 @@ public class EnemyAI : MonoBehaviour
 
         float distance = Vector3.Distance(transform.position, currentTarget.Transform.position);
 
-        if (distance > weapon.Range)
+        if (distance > weaponSystem.EffectiveRange)
         {
             agent.isStopped = false;
             agent.SetDestination(currentTarget.Transform.position);
@@ -35,7 +35,7 @@ public class EnemyAI : MonoBehaviour
         else
         {
             agent.isStopped = true;
-            weapon.TryAttack(currentTarget);
+            weaponSystem.TryFireAt(currentTarget);
         }
     }
 

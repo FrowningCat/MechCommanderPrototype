@@ -3,15 +3,19 @@ using UnityEngine;
 public class Weapon : MonoBehaviour
 {
     [Header("Weapon Stats")]
+    [SerializeField] private WeaponType weaponType = WeaponType.Energy;
     [SerializeField] private int damage = 10;
     [SerializeField] private float range = 10f;
     [SerializeField] private float cooldown = 1f;
+    [SerializeField] private float heatPerShot = 10f;
 
     private float lastAttackTime = -999f;
 
+    public WeaponType WeaponType => weaponType;
     public int Damage => damage;
     public float Range => range;
     public float Cooldown => cooldown;
+    public float HeatPerShot => heatPerShot;
 
     public bool CanAttack(ITargetable target)
     {
@@ -41,6 +45,6 @@ public class Weapon : MonoBehaviour
 
         target.TakeDamage(damage);
 
-        Debug.Log($"{gameObject.name} attacked {target.Transform.gameObject.name} for {damage} damage");
+        Debug.Log($"{gameObject.name} ({weaponType}) attacked {target.Transform.gameObject.name} for {damage} damage");
     }
 }

@@ -19,7 +19,7 @@ public class MechCombat : MonoBehaviour
     [SerializeField] private float patrolWaypointThreshold = 0.5f;
 
     private NavMeshAgent agent;
-    private Weapon weapon;
+    private MechWeaponSystem weaponSystem;
 
     private UnitOrder currentOrder = UnitOrder.None;
     private ITargetable currentTarget;
@@ -38,7 +38,7 @@ public class MechCombat : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        weapon = GetComponent<Weapon>();
+        weaponSystem = GetComponent<MechWeaponSystem>();
 
         anchorPosition = transform.position;
         orderPosition = transform.position;
@@ -283,7 +283,7 @@ public class MechCombat : MonoBehaviour
     {
         float distance = Vector3.Distance(transform.position, currentTarget.Transform.position);
 
-        if (distance > weapon.Range)
+        if (distance > weaponSystem.EffectiveRange)
         {
             agent.isStopped = false;
             agent.SetDestination(currentTarget.Transform.position);
@@ -291,7 +291,7 @@ public class MechCombat : MonoBehaviour
         else
         {
             agent.isStopped = true;
-            weapon.TryAttack(currentTarget);
+            weaponSystem.TryFireAt(currentTarget);
         }
     }
 
@@ -299,8 +299,8 @@ public class MechCombat : MonoBehaviour
     {
         float distance = Vector3.Distance(transform.position, currentTarget.Transform.position);
 
-        if (distance <= weapon.Range)
-            weapon.TryAttack(currentTarget);
+        if (distance <= weaponSystem.EffectiveRange)
+            weaponSystem.TryFireAt(currentTarget);
     }
 
     private void ReturnToAnchor()
