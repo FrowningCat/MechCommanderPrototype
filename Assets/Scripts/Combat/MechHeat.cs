@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.AI;
 
 public class MechHeat : MonoBehaviour
 {
@@ -17,21 +16,16 @@ public class MechHeat : MonoBehaviour
     private float pendingOverheatDamage;
 
     private Health health;
-    private NavMeshAgent agent;
-    private float baseSpeed;
 
     public float CurrentHeat => currentHeat;
     public float MaxHeat => maxHeat;
     public float HeatFraction => maxHeat <= 0f ? 0f : currentHeat / maxHeat;
     public bool IsOverheated => isOverheated;
+    public float SpeedMultiplier => isOverheated ? overheatSpeedMultiplier : 1f;
 
     private void Awake()
     {
         health = GetComponent<Health>();
-        agent = GetComponent<NavMeshAgent>();
-
-        if (agent != null)
-            baseSpeed = agent.speed;
     }
 
     private void Update()
@@ -40,9 +34,6 @@ public class MechHeat : MonoBehaviour
 
         if (isOverheated && currentHeat <= overheatCooldownThreshold)
             isOverheated = false;
-
-        if (agent != null)
-            agent.speed = isOverheated ? baseSpeed * overheatSpeedMultiplier : baseSpeed;
 
         if (isOverheated)
             ApplyOverheatDamage();
