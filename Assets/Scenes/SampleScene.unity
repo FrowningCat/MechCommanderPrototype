@@ -703,6 +703,7 @@ MonoBehaviour:
   health: {fileID: 81310764}
   fill: {fileID: 1216615034}
   offset: {x: 0, y: 2.5, z: 0}
+  smoothSpeed: 5
 --- !u!114 &347059489
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -817,7 +818,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1182,6 +1183,10 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  stance: 1
+  leashRange: 14
+  guardFollowDistance: 4
+  patrolWaypointThreshold: 0.5
 --- !u!1 &607138334
 GameObject:
   m_ObjectHideFlags: 0
@@ -1662,6 +1667,10 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  stance: 1
+  leashRange: 14
+  guardFollowDistance: 4
+  patrolWaypointThreshold: 0.5
 --- !u!1 &776146450
 GameObject:
   m_ObjectHideFlags: 0
@@ -1791,7 +1800,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1947,6 +1956,7 @@ MonoBehaviour:
   health: {fileID: 427281604}
   fill: {fileID: 688787440}
   offset: {x: 0, y: 2.5, z: 0}
+  smoothSpeed: 5
 --- !u!114 &1221007758
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2067,6 +2077,7 @@ MonoBehaviour:
   health: {fileID: 1475212532}
   fill: {fileID: 2136190015}
   offset: {x: 0, y: 2.5, z: 0}
+  smoothSpeed: 5
 --- !u!114 &1264037842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2533,6 +2544,10 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  stance: 1
+  leashRange: 14
+  guardFollowDistance: 4
+  patrolWaypointThreshold: 0.5
 --- !u!1 &1607596557
 GameObject:
   m_ObjectHideFlags: 0
@@ -2589,6 +2604,7 @@ MonoBehaviour:
   health: {fileID: 748871371}
   fill: {fileID: 197703709}
   offset: {x: 0, y: 2.5, z: 0}
+  smoothSpeed: 5
 --- !u!114 &1607596560
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2709,6 +2725,7 @@ MonoBehaviour:
   health: {fileID: 1811589589}
   fill: {fileID: 1375172948}
   offset: {x: 0, y: 2.5, z: 0}
+  smoothSpeed: 5
 --- !u!114 &1624506747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2823,7 +2840,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2898,7 +2915,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3046,7 +3063,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3284,6 +3301,10 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  stance: 1
+  leashRange: 14
+  guardFollowDistance: 4
+  patrolWaypointThreshold: 0.5
 --- !u!1 &1947488883
 GameObject:
   m_ObjectHideFlags: 0
