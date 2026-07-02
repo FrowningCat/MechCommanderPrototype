@@ -16,7 +16,22 @@ public class RTSInputReader : MonoBehaviour
 
     [Header("Formation")]
     [SerializeField] private float formationSpacing = 3f;
-    private bool isAttackMoveMode;
+
+    private enum PendingCommandMode
+    {
+        None,
+        AttackMove,
+        Patrol,
+        Guard
+    }
+
+    private enum MoveOrderType
+    {
+        Move,
+        AttackMove
+    }
+
+    private PendingCommandMode pendingCommand = PendingCommandMode.None;
 
     private InputSystem_Actions inputActions;
 
@@ -58,12 +73,14 @@ public class RTSInputReader : MonoBehaviour
 
     private void OnAttackMove(InputAction.CallbackContext context)
     {
-        isAttackMoveMode = true;
+        pendingCommand = PendingCommandMode.AttackMove;
         Debug.Log("Attack Move Mode");
     }
 
     private void Update()
     {
+        HandleOrderHotkeys();
+
         if (!isDragging)
             return;
 
@@ -71,6 +88,30 @@ public class RTSInputReader : MonoBehaviour
 
         if (selectionBoxUI != null)
             selectionBoxUI.UpdateSelection(mousePos);
+    }
+
+    private void HandleOrderHotkeys()
+    {
+        if (Keyboard.current == null)
+            return;
+
+        if (Keyboard.current.pKey.wasPressedThisFrame)
+        {
+            pendingCommand = PendingCommandMode.Patrol;
+            Debug.Log("Patrol Mode");
+        }
+
+        if (Keyboard.current.gKey.wasPressedThisFrame)
+        {
+            pendingCommand = PendingCommandMode.Guard;
+            Debug.Log("Guard Mode");
+        }
+
+        if (Keyboard.current.hKey.wasPressedThisFrame)
+            ExecuteHoldPosition();
+
+        if (Keyboard.current.xKey.wasPressedThisFrame)
+            CycleStance();
     }
 
     private void OnSelectStarted(InputAction.CallbackContext context)
@@ -155,15 +196,20 @@ public class RTSInputReader : MonoBehaviour
         if (selectedMechs.Count == 0)
             return;
 
-        Ray ray =
-            mainCamera.ScreenPointToRay(
-                Mouse.current.position.ReadValue()
-            );
+        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+        PendingCommandMode commandToExecute = pendingCommand;
+        pendingCommand = PendingCommandMode.None;
+
+        if (commandToExecute == PendingCommandMode.Guard)
+        {
+            ExecuteGuardCommand(ray);
+            return;
+        }
 
         if (Physics.Raycast(ray, out RaycastHit hit, 500f, enemyLayer))
         {
-            Health target =
-                hit.collider.GetComponentInParent<Health>();
+            Health target = hit.collider.GetComponentInParent<Health>();
 
             if (target != null)
             {
@@ -178,30 +224,121 @@ public class RTSInputReader : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, 500f, groundLayer))
         {
+            if (commandToExecute == PendingCommandMode.Patrol)
+            {
+                ExecutePatrolCommand(hit.point);
+                return;
+            }
+
             bool attackMovePressed = inputActions.RTS.AttackMove.IsPressed();
+            bool attackMove = commandToExecute == PendingCommandMode.AttackMove || attackMovePressed;
 
-            if (isAttackMoveMode || attackMovePressed)
+            if (!attackMove)
             {
                 foreach (MechCombat combat in selectedCombatUnits)
                 {
-                    combat.SetAttackMoveDestination(hit.point);
-                }
-
-                isAttackMoveMode = false;
-            }
-            else
-            {
-                foreach (MechCombat combat in selectedCombatUnits)
-                {
-                    combat.ClearTarget();
+                    combat.Stop();
                 }
             }
 
-            MoveSelectedMechsInFormation(hit.point);
+            MoveSelectedMechsInFormation(
+                hit.point,
+                attackMove ? MoveOrderType.AttackMove : MoveOrderType.Move
+            );
         }
     }
 
-    private void MoveSelectedMechsInFormation(Vector3 centerPoint)
+    private void ExecuteGuardCommand(Ray ray)
+    {
+        if (!Physics.Raycast(ray, out RaycastHit hit, 500f, unitLayer))
+            return;
+
+        UnitSelectable allyUnit = hit.collider.GetComponentInParent<UnitSelectable>();
+
+        if (allyUnit == null)
+            return;
+
+        foreach (MechCombat combat in selectedCombatUnits)
+        {
+            if (allyUnit.transform != combat.transform)
+                combat.GuardTarget(allyUnit.transform);
+        }
+    }
+
+    private void ExecuteHoldPosition()
+    {
+        if (selectedCombatUnits.Count == 0)
+            return;
+
+        foreach (MechCombat combat in selectedCombatUnits)
+        {
+            combat.HoldPosition();
+        }
+
+        Debug.Log("Hold Position");
+    }
+
+    private void ExecutePatrolCommand(Vector3 centerPoint)
+    {
+        if (selectedMechs.Count == 0)
+            return;
+
+        Vector3[] positions = ComputeFormationPositions(centerPoint);
+
+        for (int i = 0; i < selectedUnits.Count; i++)
+        {
+            MechCombat combat = selectedUnits[i].GetComponent<MechCombat>();
+            combat?.SetPatrol(positions[i]);
+        }
+    }
+
+    private void CycleStance()
+    {
+        if (selectedCombatUnits.Count == 0)
+            return;
+
+        foreach (MechCombat combat in selectedCombatUnits)
+        {
+            combat.SetStance(NextStance(combat.Stance));
+        }
+
+        Debug.Log($"Stance: {selectedCombatUnits[0].Stance}");
+    }
+
+    private static UnitStance NextStance(UnitStance current)
+    {
+        return current switch
+        {
+            UnitStance.Passive => UnitStance.Defensive,
+            UnitStance.Defensive => UnitStance.Aggressive,
+            UnitStance.Aggressive => UnitStance.Passive,
+            _ => UnitStance.Defensive,
+        };
+    }
+
+    private void MoveSelectedMechsInFormation(Vector3 centerPoint, MoveOrderType orderType)
+    {
+        Vector3[] positions = ComputeFormationPositions(centerPoint);
+
+        for (int i = 0; i < selectedUnits.Count; i++)
+        {
+            MechCombat combat = selectedUnits[i].GetComponent<MechCombat>();
+
+            if (combat != null)
+            {
+                if (orderType == MoveOrderType.AttackMove)
+                    combat.AttackMoveTo(positions[i]);
+                else
+                    combat.MoveTo(positions[i]);
+            }
+            else
+            {
+                selectedMechs[i].MoveTo(positions[i]);
+            }
+        }
+    }
+
+    private Vector3[] ComputeFormationPositions(Vector3 centerPoint)
     {
         int count = selectedMechs.Count;
 
@@ -228,6 +365,8 @@ public class RTSInputReader : MonoBehaviour
 
         Vector3 moveRight = Vector3.Cross(Vector3.up, moveForward).normalized;
 
+        Vector3[] positions = new Vector3[count];
+
         for (int i = 0; i < count; i++)
         {
             int row = i / columns;
@@ -241,10 +380,10 @@ public class RTSInputReader : MonoBehaviour
                 moveRight * xOffset -
                 moveForward * zOffset;
 
-            targetPosition = GetNearestNavMeshPoint(targetPosition);
-
-            selectedMechs[i].MoveTo(targetPosition);
+            positions[i] = GetNearestNavMeshPoint(targetPosition);
         }
+
+        return positions;
     }
 
     private Vector3 GetNearestNavMeshPoint(Vector3 point)
@@ -307,12 +446,14 @@ public class RTSInputReader : MonoBehaviour
 
         selectedUnits[index].Deselect();
 
+        MechCombat combat = selectedUnits[index].GetComponent<MechCombat>();
+
         selectedUnits.RemoveAt(index);
         selectedMechs.RemoveAt(index);
 
-        if (index < selectedCombatUnits.Count)
+        if (combat != null)
         {
-            selectedCombatUnits.RemoveAt(index);
+            selectedCombatUnits.Remove(combat);
         }
     }
 

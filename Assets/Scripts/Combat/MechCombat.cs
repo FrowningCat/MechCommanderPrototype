@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,98 +8,280 @@ public class MechCombat : MonoBehaviour
     [SerializeField] private float detectionRadius = 12f;
     [SerializeField] private LayerMask enemyLayer;
 
+    [Header("Stance")]
+    [SerializeField] private UnitStance stance = UnitStance.Defensive;
+    [SerializeField] private float leashRange = 14f;
+
+    [Header("Guard")]
+    [SerializeField] private float guardFollowDistance = 4f;
+
+    [Header("Patrol")]
+    [SerializeField] private float patrolWaypointThreshold = 0.5f;
+
     private NavMeshAgent agent;
     private Weapon weapon;
 
+    private UnitOrder currentOrder = UnitOrder.None;
     private ITargetable currentTarget;
-    private bool attackMoveEnabled;
 
-    private Vector3 attackMoveDestination;
-    private bool hasAttackMoveDestination;
+    private Vector3 orderPosition;
+    private Vector3 anchorPosition;
+
+    private readonly List<Vector3> patrolPoints = new();
+    private int patrolIndex;
+
+    private Transform guardTarget;
+
+    public UnitOrder CurrentOrder => currentOrder;
+    public UnitStance Stance => stance;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         weapon = GetComponent<Weapon>();
+
+        anchorPosition = transform.position;
+        orderPosition = transform.position;
     }
 
     private void Update()
     {
-        if (attackMoveEnabled)
+        switch (currentOrder)
         {
-            HandleAttackMove();
-            return;
+            case UnitOrder.None:
+                HandleIdle();
+                break;
+            case UnitOrder.Move:
+                HandleMove();
+                break;
+            case UnitOrder.AttackMove:
+                HandleAttackMove();
+                break;
+            case UnitOrder.AttackTarget:
+                HandleAttackTarget();
+                break;
+            case UnitOrder.HoldPosition:
+                HandleHoldPosition();
+                break;
+            case UnitOrder.Patrol:
+                HandlePatrol();
+                break;
+            case UnitOrder.Guard:
+                HandleGuard();
+                break;
         }
+    }
 
-        HandleDirectTarget();
+    // ---------- Public order API ----------
+
+    public void MoveTo(Vector3 destination)
+    {
+        SetOrder(UnitOrder.Move);
+
+        orderPosition = destination;
+
+        agent.isStopped = false;
+        agent.SetDestination(destination);
+    }
+
+    public void AttackMoveTo(Vector3 destination)
+    {
+        SetOrder(UnitOrder.AttackMove);
+
+        orderPosition = destination;
+
+        agent.isStopped = false;
+        agent.SetDestination(destination);
     }
 
     public void SetTarget(ITargetable target)
     {
-        attackMoveEnabled = false;
-        hasAttackMoveDestination = false;
+        SetOrder(UnitOrder.AttackTarget);
+
         currentTarget = target;
     }
 
-    public void SetAttackMoveDestination(Vector3 destination)
+    public void HoldPosition()
     {
-        attackMoveEnabled = true;
-        hasAttackMoveDestination = true;
-        attackMoveDestination = destination;
-        currentTarget = null;
+        SetOrder(UnitOrder.HoldPosition);
 
-        agent.isStopped = false;
-        agent.SetDestination(attackMoveDestination);
+        orderPosition = transform.position;
+
+        agent.isStopped = true;
+        agent.ResetPath();
     }
 
-    public void ClearTarget()
+    public void SetPatrol(Vector3 pointB)
     {
-        attackMoveEnabled = false;
-        hasAttackMoveDestination = false;
-        currentTarget = null;
+        SetOrder(UnitOrder.Patrol);
+
+        patrolPoints.Add(transform.position);
+        patrolPoints.Add(pointB);
+        patrolIndex = 1;
+
         agent.isStopped = false;
+        agent.SetDestination(patrolPoints[patrolIndex]);
+    }
+
+    public void GuardTarget(Transform target)
+    {
+        if (target == null)
+            return;
+
+        SetOrder(UnitOrder.Guard);
+
+        guardTarget = target;
+
+        agent.isStopped = false;
+    }
+
+    public void Stop()
+    {
+        SetOrder(UnitOrder.None);
+
+        anchorPosition = transform.position;
+
+        agent.isStopped = true;
+        agent.ResetPath();
+    }
+
+    public void SetStance(UnitStance newStance)
+    {
+        stance = newStance;
+    }
+
+    private void SetOrder(UnitOrder order)
+    {
+        currentOrder = order;
+        currentTarget = null;
+        guardTarget = null;
+        patrolPoints.Clear();
+    }
+
+    // ---------- Order handlers ----------
+
+    private void HandleIdle()
+    {
+        if (TryAutoEngage(anchorPosition, useLeash: stance == UnitStance.Defensive))
+            return;
+
+        ReturnToAnchor();
+    }
+
+    private void HandleMove()
+    {
+        if (stance == UnitStance.Aggressive &&
+            TryAutoEngage(orderPosition, useLeash: false))
+        {
+            return;
+        }
+
+        agent.isStopped = false;
+        agent.SetDestination(orderPosition);
     }
 
     private void HandleAttackMove()
     {
+        if (TryAutoEngage(orderPosition, useLeash: false, ignoreStance: true))
+            return;
+
+        agent.isStopped = false;
+        agent.SetDestination(orderPosition);
+    }
+
+    private void HandleAttackTarget()
+    {
         if (currentTarget == null || !currentTarget.IsAlive)
         {
+            Stop();
+            return;
+        }
+
+        EngageTarget();
+    }
+
+    private void HandleHoldPosition()
+    {
+        agent.isStopped = true;
+
+        if (stance == UnitStance.Passive)
+            return;
+
+        if (currentTarget == null || !currentTarget.IsAlive)
             currentTarget = FindNearestEnemy();
 
-            if (currentTarget == null)
+        if (currentTarget != null)
+            EngageInPlace();
+    }
+
+    private void HandlePatrol()
+    {
+        if (patrolPoints.Count < 2)
+            return;
+
+        if (TryAutoEngage(transform.position, useLeash: stance == UnitStance.Defensive))
+            return;
+
+        agent.isStopped = false;
+
+        if (!agent.pathPending && agent.remainingDistance <= patrolWaypointThreshold)
+            patrolIndex = (patrolIndex + 1) % patrolPoints.Count;
+
+        agent.SetDestination(patrolPoints[patrolIndex]);
+    }
+
+    private void HandleGuard()
+    {
+        if (guardTarget == null)
+        {
+            Stop();
+            return;
+        }
+
+        if (TryAutoEngage(guardTarget.position, useLeash: stance == UnitStance.Defensive))
+            return;
+
+        agent.isStopped = false;
+
+        float distanceToGuardTarget = Vector3.Distance(transform.position, guardTarget.position);
+
+        if (distanceToGuardTarget > guardFollowDistance)
+            agent.SetDestination(guardTarget.position);
+        else
+            agent.ResetPath();
+    }
+
+    // ---------- Shared combat helpers ----------
+
+    private bool TryAutoEngage(Vector3 anchor, bool useLeash, bool ignoreStance = false)
+    {
+        if (!ignoreStance && stance == UnitStance.Passive)
+            return false;
+
+        if (currentTarget == null || !currentTarget.IsAlive)
+            currentTarget = FindNearestEnemy();
+
+        if (currentTarget == null)
+            return false;
+
+        if (useLeash)
+        {
+            float anchorDistance = Vector3.Distance(anchor, currentTarget.Transform.position);
+
+            if (anchorDistance > leashRange)
             {
-                ContinueAttackMoveDestination();
-                return;
+                currentTarget = null;
+                return false;
             }
         }
 
-        HandleCombatAgainstCurrentTarget();
+        EngageTarget();
+        return true;
     }
 
-    private void HandleDirectTarget()
+    private void EngageTarget()
     {
-        if (currentTarget == null)
-            return;
-
-        if (!currentTarget.IsAlive)
-        {
-            currentTarget = null;
-            agent.isStopped = false;
-            return;
-        }
-
-        HandleCombatAgainstCurrentTarget();
-    }
-
-    private void HandleCombatAgainstCurrentTarget()
-    {
-        if (currentTarget == null || !currentTarget.IsAlive)
-            return;
-
-        float distance = Vector3.Distance(
-            transform.position,
-            currentTarget.Transform.position
-        );
+        float distance = Vector3.Distance(transform.position, currentTarget.Transform.position);
 
         if (distance > weapon.Range)
         {
@@ -112,13 +295,24 @@ public class MechCombat : MonoBehaviour
         }
     }
 
-    private void ContinueAttackMoveDestination()
+    private void EngageInPlace()
     {
-        if (!hasAttackMoveDestination)
+        float distance = Vector3.Distance(transform.position, currentTarget.Transform.position);
+
+        if (distance <= weapon.Range)
+            weapon.TryAttack(currentTarget);
+    }
+
+    private void ReturnToAnchor()
+    {
+        if (Vector3.Distance(transform.position, anchorPosition) <= patrolWaypointThreshold)
+        {
+            agent.isStopped = true;
             return;
+        }
 
         agent.isStopped = false;
-        agent.SetDestination(attackMoveDestination);
+        agent.SetDestination(anchorPosition);
     }
 
     private ITargetable FindNearestEnemy()
@@ -156,6 +350,19 @@ public class MechCombat : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
+
+        if (stance == UnitStance.Defensive)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(Application.isPlaying ? anchorPosition : transform.position, leashRange);
+        }
+
+        if (Application.isPlaying && currentOrder == UnitOrder.Guard && guardTarget != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(guardTarget.position, guardFollowDistance);
+        }
     }
 }
