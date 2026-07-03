@@ -65,12 +65,20 @@ public class TerrainSpeedController : MonoBehaviour
 
     private float SampleTerrainMultiplier()
     {
-        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, sampleRadius, NavMesh.AllAreas))
+        Vector3 samplePoint = transform.position - Vector3.up * agent.baseOffset;
+
+        if (!NavMesh.SamplePosition(samplePoint, out NavMeshHit hit, sampleRadius, NavMesh.AllAreas))
+        {
+            Debug.Log($"[TSC] {gameObject.name}: samplePoint={samplePoint} (baseOffset={agent.baseOffset}) SAMPLE FAILED -> mult=1");
             return 1f;
+        }
 
         int areaIndex = AreaMaskToIndex(hit.mask);
+        float multiplier = areaMultipliers.TryGetValue(areaIndex, out float value) ? value : 1f;
 
-        return areaMultipliers.TryGetValue(areaIndex, out float multiplier) ? multiplier : 1f;
+        Debug.Log($"[TSC] {gameObject.name}: samplePoint={samplePoint} area={areaIndex} mult={multiplier} FINAL speed={baseSpeed * multiplier}");
+
+        return multiplier;
     }
 
     private static int AreaMaskToIndex(int areaMask)
