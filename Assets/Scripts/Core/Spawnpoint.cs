@@ -18,4 +18,4 @@ public class SpawnPoint : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, 1f);
         Gizmos.DrawLine(transform.position, transform.position + Vector3.up * 2f);
     }
-}
+}   
