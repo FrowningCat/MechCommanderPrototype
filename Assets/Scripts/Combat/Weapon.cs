@@ -9,6 +9,10 @@ public class Weapon : MonoBehaviour
     [SerializeField] private float cooldown = 1f;
     [SerializeField] private float heatPerShot = 10f;
 
+    [Header("Cover")]
+    [SerializeField] private LayerMask coverLayer;
+    [SerializeField] private float lineOfSightHeightOffset = 1f;
+
     private float lastAttackTime = -999f;
 
     public WeaponType WeaponType => weaponType;
@@ -43,8 +47,29 @@ public class Weapon : MonoBehaviour
 
         lastAttackTime = Time.time;
 
-        target.TakeDamage(damage);
+        ITargetable actualTarget = GetLineOfSightBlocker(target) ?? target;
 
-        Debug.Log($"{gameObject.name} ({weaponType}) attacked {target.Transform.gameObject.name} for {damage} damage");
+        actualTarget.TakeDamage(damage);
+
+        Debug.Log($"{gameObject.name} ({weaponType}) attacked {actualTarget.Transform.gameObject.name} for {damage} damage");
+    }
+
+    private ITargetable GetLineOfSightBlocker(ITargetable target)
+    {
+        Vector3 heightOffset = Vector3.up * lineOfSightHeightOffset;
+
+        Vector3 origin = transform.position + heightOffset;
+        Vector3 destination = target.Transform.position + heightOffset;
+
+        Vector3 direction = destination - origin;
+        float distance = direction.magnitude;
+
+        if (distance <= 0.01f)
+            return null;
+
+        if (!Physics.Raycast(origin, direction.normalized, out RaycastHit hit, distance, coverLayer))
+            return null;
+
+        return hit.collider.GetComponentInParent<ITargetable>();
     }
 }
