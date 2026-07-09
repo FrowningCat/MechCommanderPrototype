@@ -15,6 +15,8 @@ public class UnitInfoPanel : MonoBehaviour
     [Header("Health")]
     [SerializeField] private TMP_Text hpText;
     [SerializeField] private Image hpFillImage;
+    [SerializeField] private Color fullHealthColor = Color.green;
+    [SerializeField] private Color lowHealthColor = Color.red;
 
     [Header("Status")]
     [SerializeField] private TMP_Text stanceText;
@@ -86,9 +88,12 @@ public class UnitInfoPanel : MonoBehaviour
 
             if (hpFillImage != null)
             {
-                hpFillImage.fillAmount = trackedHealth.MaxHealth > 0
+                float healthFraction = trackedHealth.MaxHealth > 0
                     ? (float)trackedHealth.CurrentHealth / trackedHealth.MaxHealth
                     : 0f;
+
+                hpFillImage.fillAmount = healthFraction;
+                hpFillImage.color = Color.Lerp(lowHealthColor, fullHealthColor, healthFraction);
             }
         }
 
