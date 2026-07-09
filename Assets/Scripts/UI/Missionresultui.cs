@@ -13,6 +13,10 @@ public class MissionResultUI : MonoBehaviour
     [Tooltip("Точное имя сцены главного меню, регистр важен")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip victorySound;
+    [SerializeField] private AudioClip defeatSound;
+
     private void OnEnable()
     {
         if (missionController != null)
@@ -38,6 +42,12 @@ public class MissionResultUI : MonoBehaviour
 
         if (resultText != null)
             resultText.text = state == MissionState.Victory ? "Победа" : "Поражение";
+
+        if (AudioManager.Instance != null)
+        {
+            AudioClip clip = state == MissionState.Victory ? victorySound : defeatSound;
+            AudioManager.Instance.PlayUiSound(clip);
+        }
     }
 
     public void OnMainMenuClicked()

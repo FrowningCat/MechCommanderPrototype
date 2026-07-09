@@ -13,6 +13,9 @@ public class Weapon : MonoBehaviour
     [SerializeField] private LayerMask coverLayer;
     [SerializeField] private float lineOfSightHeightOffset = 1f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip fireSound;
+
     private float lastAttackTime = -999f;
 
     public WeaponType WeaponType => weaponType;
@@ -50,6 +53,8 @@ public class Weapon : MonoBehaviour
         ITargetable actualTarget = GetLineOfSightBlocker(target) ?? target;
 
         actualTarget.TakeDamage(damage);
+
+        AudioManager.PlaySfxAtPoint(fireSound, transform.position);
 
         Debug.Log($"{gameObject.name} ({weaponType}) attacked {actualTarget.Transform.gameObject.name} for {damage} damage");
     }

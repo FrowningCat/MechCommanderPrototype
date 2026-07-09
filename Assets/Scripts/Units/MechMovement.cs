@@ -3,11 +3,37 @@ using UnityEngine.AI;
 
 public class MechMovement : MonoBehaviour
 {
+    [Header("Audio")]
+    [SerializeField] private AudioClip footstepLoop;
+    [SerializeField] private float movementThreshold = 0.1f;
+
     private NavMeshAgent agent;
+    private AudioSource footstepSource;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+
+        if (footstepLoop != null)
+        {
+            footstepSource = gameObject.AddComponent<AudioSource>();
+            footstepSource.clip = footstepLoop;
+            footstepSource.loop = true;
+            footstepSource.playOnAwake = false;
+        }
+    }
+
+    private void Update()
+    {
+        if (footstepSource == null)
+            return;
+
+        bool isMoving = agent.velocity.magnitude > movementThreshold;
+
+        if (isMoving && !footstepSource.isPlaying)
+            footstepSource.Play();
+        else if (!isMoving && footstepSource.isPlaying)
+            footstepSource.Stop();
     }
 
     public void MoveTo(Vector3 point)

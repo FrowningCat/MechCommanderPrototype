@@ -5,6 +5,10 @@ public class Health : MonoBehaviour, ITargetable
     [SerializeField] private int maxHealth = 100;
     [SerializeField] private int armorValue = 0;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip hitSound;
+    [SerializeField] private AudioClip destructionSound;
+
     private int currentHealth;
     private bool isAlive = true;
 
@@ -65,6 +69,8 @@ public class Health : MonoBehaviour, ITargetable
 
         OnDamaged?.Invoke();
 
+        AudioManager.PlaySfxAtPoint(hitSound, transform.position);
+
         Debug.Log($"{gameObject.name} took {mitigatedDamage} damage. HP = {currentHealth}");
 
         if (currentHealth <= 0)
@@ -80,6 +86,8 @@ public class Health : MonoBehaviour, ITargetable
             return;
 
         isAlive = false;
+
+        AudioManager.PlaySfxAtPoint(destructionSound, transform.position);
 
         Debug.Log($"{gameObject.name} destroyed");
 
