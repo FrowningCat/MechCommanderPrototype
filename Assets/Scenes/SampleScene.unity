@@ -1556,6 +1556,8 @@ MonoBehaviour:
   nameText: {fileID: 1348597900}
   hpText: {fileID: 923947507}
   hpFillImage: {fileID: 196986058}
+  fullHealthColor: {r: 0, g: 1, b: 0, a: 1}
+  lowHealthColor: {r: 1, g: 0, b: 0, a: 1}
   stanceText: {fileID: 395876376}
   orderText: {fileID: 1628914193}
   statsText: {fileID: 844220493}
@@ -3953,6 +3955,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5050249625837232152, guid: 7b5ff1e9df28b084b89edade1690e320, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8324066676600875957, guid: 7b5ff1e9df28b084b89edade1690e320, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.64
+      objectReference: {fileID: 0}
     - target: {fileID: 8937205163127609688, guid: 7b5ff1e9df28b084b89edade1690e320, type: 3}
       propertyPath: m_Name
       value: Mech
