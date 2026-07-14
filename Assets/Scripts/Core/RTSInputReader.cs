@@ -39,6 +39,10 @@ public class RTSInputReader : MonoBehaviour
     private readonly List<MechMovement> selectedMechs = new();
     private readonly List<MechCombat> selectedCombatUnits = new();
 
+    // Parallel to selectedUnits/selectedMechs (same index, may contain null
+    // for units without MechCombat) — avoids GetComponent lookups in hot paths.
+    private readonly List<MechCombat> selectedMechCombats = new();
+
     private bool isDragging;
     private Vector2 dragStartPos;
     private Vector2 dragEndPos;
@@ -267,6 +271,8 @@ public class RTSInputReader : MonoBehaviour
 
     private void ExecuteHoldPosition()
     {
+        pendingCommand = PendingCommandMode.None;
+
         if (selectedCombatUnits.Count == 0)
             return;
 
@@ -285,15 +291,16 @@ public class RTSInputReader : MonoBehaviour
 
         Vector3[] positions = ComputeFormationPositions(centerPoint);
 
-        for (int i = 0; i < selectedUnits.Count; i++)
+        for (int i = 0; i < selectedMechCombats.Count; i++)
         {
-            MechCombat combat = selectedUnits[i].GetComponent<MechCombat>();
-            combat?.SetPatrol(positions[i]);
+            selectedMechCombats[i]?.SetPatrol(positions[i]);
         }
     }
 
     private void CycleStance()
     {
+        pendingCommand = PendingCommandMode.None;
+
         if (selectedCombatUnits.Count == 0)
             return;
 
@@ -322,7 +329,7 @@ public class RTSInputReader : MonoBehaviour
 
         for (int i = 0; i < selectedUnits.Count; i++)
         {
-            MechCombat combat = selectedUnits[i].GetComponent<MechCombat>();
+            MechCombat combat = selectedMechCombats[i];
 
             if (combat != null)
             {
@@ -428,6 +435,7 @@ public class RTSInputReader : MonoBehaviour
 
         selectedUnits.Add(unit);
         selectedMechs.Add(mechMovement);
+        selectedMechCombats.Add(combat);
 
         if (combat != null)
         {
@@ -446,10 +454,11 @@ public class RTSInputReader : MonoBehaviour
 
         selectedUnits[index].Deselect();
 
-        MechCombat combat = selectedUnits[index].GetComponent<MechCombat>();
+        MechCombat combat = selectedMechCombats[index];
 
         selectedUnits.RemoveAt(index);
         selectedMechs.RemoveAt(index);
+        selectedMechCombats.RemoveAt(index);
 
         if (combat != null)
         {
@@ -464,6 +473,7 @@ public class RTSInputReader : MonoBehaviour
 
         selectedUnits.Clear();
         selectedMechs.Clear();
+        selectedMechCombats.Clear();
         selectedCombatUnits.Clear();
     }
 

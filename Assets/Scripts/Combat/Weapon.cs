@@ -50,16 +50,31 @@ public class Weapon : MonoBehaviour
 
         lastAttackTime = Time.time;
 
-        ITargetable actualTarget = GetLineOfSightBlocker(target) ?? target;
-
-        actualTarget.TakeDamage(damage);
-
         AudioManager.PlaySfxAtPoint(fireSound, transform.position);
 
-        Debug.Log($"{gameObject.name} ({weaponType}) attacked {actualTarget.Transform.gameObject.name} for {damage} damage");
+        if (TryGetCoverHit(target, out RaycastHit coverHit))
+        {
+            ITargetable coverTarget = coverHit.collider.GetComponentInParent<ITargetable>();
+
+            if (coverTarget != null)
+            {
+                coverTarget.TakeDamage(damage);
+                Debug.Log($"{gameObject.name} ({weaponType}) hit cover ({coverHit.collider.gameObject.name}) for {damage} damage");
+            }
+            else
+            {
+                Debug.Log($"{gameObject.name}: shot blocked by indestructible obstacle ({coverHit.collider.gameObject.name}), no damage dealt");
+            }
+
+            return;
+        }
+
+        target.TakeDamage(damage);
+
+        Debug.Log($"{gameObject.name} ({weaponType}) attacked {target.Transform.gameObject.name} for {damage} damage");
     }
 
-    private ITargetable GetLineOfSightBlocker(ITargetable target)
+    private bool TryGetCoverHit(ITargetable target, out RaycastHit hit)
     {
         Vector3 heightOffset = Vector3.up * lineOfSightHeightOffset;
 
@@ -70,11 +85,11 @@ public class Weapon : MonoBehaviour
         float distance = direction.magnitude;
 
         if (distance <= 0.01f)
-            return null;
+        {
+            hit = default;
+            return false;
+        }
 
-        if (!Physics.Raycast(origin, direction.normalized, out RaycastHit hit, distance, coverLayer))
-            return null;
-
-        return hit.collider.GetComponentInParent<ITargetable>();
+        return Physics.Raycast(origin, direction.normalized, out hit, distance, coverLayer);
     }
 }

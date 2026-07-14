@@ -14,6 +14,9 @@ public class ControlGroupManager : MonoBehaviour
 
     private readonly Dictionary<int, List<UnitSelectable>> controlGroups = new();
 
+    private System.Action<InputAction.CallbackContext>[] selectGroupHandlers;
+    private System.Action<InputAction.CallbackContext>[] setGroupHandlers;
+
     private int lastSelectedGroup = -1;
     private float lastSelectTime;
 
@@ -26,35 +29,70 @@ public class ControlGroupManager : MonoBehaviour
 
         if (cameraController == null)
             cameraController = FindFirstObjectByType<RTSCameraController>();
+
+        BuildHandlers();
+    }
+
+    private void BuildHandlers()
+    {
+        selectGroupHandlers = new System.Action<InputAction.CallbackContext>[10];
+        setGroupHandlers = new System.Action<InputAction.CallbackContext>[10];
+
+        for (int i = 1; i <= 9; i++)
+        {
+            int groupNumber = i;
+            selectGroupHandlers[i] = _ => SelectGroup(groupNumber);
+            setGroupHandlers[i] = _ => SetGroup(groupNumber);
+        }
     }
 
     private void OnEnable()
     {
         inputActions.RTSGroups.Enable();
 
-        inputActions.RTSGroups.Group1.performed += _ => SelectGroup(1);
-        inputActions.RTSGroups.Group2.performed += _ => SelectGroup(2);
-        inputActions.RTSGroups.Group3.performed += _ => SelectGroup(3);
-        inputActions.RTSGroups.Group4.performed += _ => SelectGroup(4);
-        inputActions.RTSGroups.Group5.performed += _ => SelectGroup(5);
-        inputActions.RTSGroups.Group6.performed += _ => SelectGroup(6);
-        inputActions.RTSGroups.Group7.performed += _ => SelectGroup(7);
-        inputActions.RTSGroups.Group8.performed += _ => SelectGroup(8);
-        inputActions.RTSGroups.Group9.performed += _ => SelectGroup(9);
+        inputActions.RTSGroups.Group1.performed += selectGroupHandlers[1];
+        inputActions.RTSGroups.Group2.performed += selectGroupHandlers[2];
+        inputActions.RTSGroups.Group3.performed += selectGroupHandlers[3];
+        inputActions.RTSGroups.Group4.performed += selectGroupHandlers[4];
+        inputActions.RTSGroups.Group5.performed += selectGroupHandlers[5];
+        inputActions.RTSGroups.Group6.performed += selectGroupHandlers[6];
+        inputActions.RTSGroups.Group7.performed += selectGroupHandlers[7];
+        inputActions.RTSGroups.Group8.performed += selectGroupHandlers[8];
+        inputActions.RTSGroups.Group9.performed += selectGroupHandlers[9];
 
-        inputActions.RTSGroups.SetGroup1.performed += _ => SetGroup(1);
-        inputActions.RTSGroups.SetGroup2.performed += _ => SetGroup(2);
-        inputActions.RTSGroups.SetGroup3.performed += _ => SetGroup(3);
-        inputActions.RTSGroups.SetGroup4.performed += _ => SetGroup(4);
-        inputActions.RTSGroups.SetGroup5.performed += _ => SetGroup(5);
-        inputActions.RTSGroups.SetGroup6.performed += _ => SetGroup(6);
-        inputActions.RTSGroups.SetGroup7.performed += _ => SetGroup(7);
-        inputActions.RTSGroups.SetGroup8.performed += _ => SetGroup(8);
-        inputActions.RTSGroups.SetGroup9.performed += _ => SetGroup(9);
+        inputActions.RTSGroups.SetGroup1.performed += setGroupHandlers[1];
+        inputActions.RTSGroups.SetGroup2.performed += setGroupHandlers[2];
+        inputActions.RTSGroups.SetGroup3.performed += setGroupHandlers[3];
+        inputActions.RTSGroups.SetGroup4.performed += setGroupHandlers[4];
+        inputActions.RTSGroups.SetGroup5.performed += setGroupHandlers[5];
+        inputActions.RTSGroups.SetGroup6.performed += setGroupHandlers[6];
+        inputActions.RTSGroups.SetGroup7.performed += setGroupHandlers[7];
+        inputActions.RTSGroups.SetGroup8.performed += setGroupHandlers[8];
+        inputActions.RTSGroups.SetGroup9.performed += setGroupHandlers[9];
     }
 
     private void OnDisable()
     {
+        inputActions.RTSGroups.Group1.performed -= selectGroupHandlers[1];
+        inputActions.RTSGroups.Group2.performed -= selectGroupHandlers[2];
+        inputActions.RTSGroups.Group3.performed -= selectGroupHandlers[3];
+        inputActions.RTSGroups.Group4.performed -= selectGroupHandlers[4];
+        inputActions.RTSGroups.Group5.performed -= selectGroupHandlers[5];
+        inputActions.RTSGroups.Group6.performed -= selectGroupHandlers[6];
+        inputActions.RTSGroups.Group7.performed -= selectGroupHandlers[7];
+        inputActions.RTSGroups.Group8.performed -= selectGroupHandlers[8];
+        inputActions.RTSGroups.Group9.performed -= selectGroupHandlers[9];
+
+        inputActions.RTSGroups.SetGroup1.performed -= setGroupHandlers[1];
+        inputActions.RTSGroups.SetGroup2.performed -= setGroupHandlers[2];
+        inputActions.RTSGroups.SetGroup3.performed -= setGroupHandlers[3];
+        inputActions.RTSGroups.SetGroup4.performed -= setGroupHandlers[4];
+        inputActions.RTSGroups.SetGroup5.performed -= setGroupHandlers[5];
+        inputActions.RTSGroups.SetGroup6.performed -= setGroupHandlers[6];
+        inputActions.RTSGroups.SetGroup7.performed -= setGroupHandlers[7];
+        inputActions.RTSGroups.SetGroup8.performed -= setGroupHandlers[8];
+        inputActions.RTSGroups.SetGroup9.performed -= setGroupHandlers[9];
+
         inputActions.RTSGroups.Disable();
     }
 
