@@ -9,10 +9,15 @@ public class MechMovement : MonoBehaviour
 
     private NavMeshAgent agent;
     private AudioSource footstepSource;
+    private Animator animator;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>();
+
+        if (animator != null)
+            animator.applyRootMotion = false;
 
         if (footstepLoop != null)
         {
@@ -25,10 +30,13 @@ public class MechMovement : MonoBehaviour
 
     private void Update()
     {
+        bool isMoving = agent.velocity.magnitude > movementThreshold;
+
+        if (animator != null)
+            animator.SetBool("IsMoving", isMoving);
+
         if (footstepSource == null)
             return;
-
-        bool isMoving = agent.velocity.magnitude > movementThreshold;
 
         if (isMoving && !footstepSource.isPlaying)
             footstepSource.Play();

@@ -544,6 +544,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f8e708f2f1699e4481ecc38d068b28f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MechMovement
+  footstepLoop: {fileID: 0}
+  movementThreshold: 0.1
 --- !u!114 &3203514129119137164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -572,6 +574,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
   armorValue: 0
+  hitSound: {fileID: 0}
+  destructionSound: {fileID: 0}
 --- !u!114 &5775557122477832767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -593,6 +597,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   lineOfSightHeightOffset: 1
+  fireSound: {fileID: 0}
 --- !u!114 &4323509510132730405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -702,6 +707,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: George
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 5248cf53bcba72e47a33b089f00831fd, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 66f4dfd3009affc47879b7d943d76f13, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

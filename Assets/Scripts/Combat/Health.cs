@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Health : MonoBehaviour, ITargetable
 {
@@ -11,6 +12,7 @@ public class Health : MonoBehaviour, ITargetable
 
     private int currentHealth;
     private bool isAlive = true;
+    private Animator animator;
 
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
@@ -25,6 +27,7 @@ public class Health : MonoBehaviour, ITargetable
     {
         currentHealth = maxHealth;
         isAlive = true;
+        animator = GetComponentInChildren<Animator>();
     }
 
     public void TakeDamage(int damage)
@@ -91,6 +94,51 @@ public class Health : MonoBehaviour, ITargetable
 
         Debug.Log($"{gameObject.name} destroyed");
 
-        Destroy(gameObject);
+        if (animator == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        animator.SetTrigger("Die");
+
+        DisableUnit();
+
+        Destroy(gameObject, GetDeathClipLength());
+    }
+
+    private void DisableUnit()
+    {
+        Collider unitCollider = GetComponent<Collider>();
+        if (unitCollider != null)
+            unitCollider.enabled = false;
+
+        NavMeshAgent agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+            agent.enabled = false;
+
+        foreach (MonoBehaviour behaviour in GetComponents<MonoBehaviour>())
+        {
+            if (behaviour == this)
+                continue;
+
+            behaviour.enabled = false;
+        }
+    }
+
+    private float GetDeathClipLength()
+    {
+        RuntimeAnimatorController controller = animator.runtimeAnimatorController;
+
+        if (controller == null)
+            return 0f;
+
+        foreach (AnimationClip clip in controller.animationClips)
+        {
+            if (clip != null && clip.name.IndexOf("Death", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return clip.length;
+        }
+
+        return 0f;
     }
 }

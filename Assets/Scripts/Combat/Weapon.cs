@@ -17,12 +17,18 @@ public class Weapon : MonoBehaviour
     [SerializeField] private AudioClip fireSound;
 
     private float lastAttackTime = -999f;
+    private Animator animator;
 
     public WeaponType WeaponType => weaponType;
     public int Damage => damage;
     public float Range => range;
     public float Cooldown => cooldown;
     public float HeatPerShot => heatPerShot;
+
+    private void Awake()
+    {
+        animator = GetComponentInChildren<Animator>();
+    }
 
     public bool CanAttack(ITargetable target)
     {
@@ -49,6 +55,9 @@ public class Weapon : MonoBehaviour
             return;
 
         lastAttackTime = Time.time;
+
+        if (animator != null)
+            animator.SetTrigger("Attack");
 
         AudioManager.PlaySfxAtPoint(fireSound, transform.position);
 
