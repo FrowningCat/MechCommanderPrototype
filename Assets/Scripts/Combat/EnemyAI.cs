@@ -7,18 +7,29 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float detectionRadius = 15f;
     [SerializeField] private LayerMask targetLayer;
 
+    [Header("Movement")]
+    [SerializeField] private float movementThreshold = 0.1f;
+
     private NavMeshAgent agent;
     private MechWeaponSystem weaponSystem;
     private ITargetable currentTarget;
+    private Animator animator;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         weaponSystem = GetComponent<MechWeaponSystem>();
+        animator = GetComponentInChildren<Animator>();
+
+        if (animator != null)
+            animator.applyRootMotion = false;
     }
 
     private void Update()
     {
+        if (animator != null)
+            animator.SetBool("IsMoving", agent.velocity.magnitude > movementThreshold);
+
         if (currentTarget == null || !currentTarget.IsAlive)
             currentTarget = FindNearestTarget();
 

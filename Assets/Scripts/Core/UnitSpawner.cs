@@ -4,7 +4,7 @@ public class UnitSpawner : MonoBehaviour
 {
     [Header("Prefabs")]
     [SerializeField] private GameObject playerUnitPrefab;
-    [SerializeField] private GameObject enemyUnitPrefab;
+    [SerializeField] private GameObject[] enemyUnitPrefabs;
 
     [Header("Options")]
     [SerializeField] private bool spawnOnStart = true;
@@ -25,7 +25,7 @@ public class UnitSpawner : MonoBehaviour
 
     private void SpawnAtPoint(SpawnPoint point)
     {
-        GameObject prefab = point.Type == SpawnPointType.Player ? playerUnitPrefab : enemyUnitPrefab;
+        GameObject prefab = point.Type == SpawnPointType.Player ? playerUnitPrefab : PickRandomEnemyPrefab();
 
         if (prefab == null)
         {
@@ -34,5 +34,13 @@ public class UnitSpawner : MonoBehaviour
         }
 
         Instantiate(prefab, point.transform.position, point.transform.rotation);
+    }
+
+    private GameObject PickRandomEnemyPrefab()
+    {
+        if (enemyUnitPrefabs == null || enemyUnitPrefabs.Length == 0)
+            return null;
+
+        return enemyUnitPrefabs[Random.Range(0, enemyUnitPrefabs.Length)];
     }
 }
