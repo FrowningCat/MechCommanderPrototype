@@ -32,12 +32,25 @@ public class Health : MonoBehaviour, ITargetable
 
     public void TakeDamage(int damage)
     {
-        ApplyDamage(damage, applyArmor: true);
+        ApplyDamage(damage, armorValue);
+    }
+
+    public void TakeDamage(int damage, WeaponType weaponType)
+    {
+        ApplyDamage(damage, GetEffectiveArmor(weaponType));
     }
 
     public void TakeDamageBypassArmor(int damage)
     {
-        ApplyDamage(damage, applyArmor: false);
+        ApplyDamage(damage, 0);
+    }
+
+    private int GetEffectiveArmor(WeaponType weaponType)
+    {
+        if (weaponType == WeaponType.Energy)
+            return Mathf.FloorToInt(armorValue * 0.7f);
+
+        return armorValue;
     }
 
     public void Heal(int amount)
@@ -52,7 +65,7 @@ public class Health : MonoBehaviour, ITargetable
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
 
-    private void ApplyDamage(int damage, bool applyArmor)
+    private void ApplyDamage(int damage, int armorToApply)
     {
         if (!isAlive)
             return;
@@ -60,7 +73,7 @@ public class Health : MonoBehaviour, ITargetable
         if (damage <= 0)
             return;
 
-        int mitigatedDamage = applyArmor ? Mathf.Max(0, damage - armorValue) : damage;
+        int mitigatedDamage = Mathf.Max(0, damage - armorToApply);
 
         if (mitigatedDamage <= 0)
         {

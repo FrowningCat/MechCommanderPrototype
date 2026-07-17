@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Weapon : MonoBehaviour
@@ -13,6 +14,11 @@ public class Weapon : MonoBehaviour
     [SerializeField] private LayerMask coverLayer;
     [SerializeField] private float lineOfSightHeightOffset = 1f;
 
+    [Header("Splash (Missile)")]
+    [SerializeField] private float splashRadius = 3f;
+    [SerializeField] private float splashDamageMultiplier = 0.4f;
+    [SerializeField] private LayerMask splashLayer = (1 << 6) | (1 << 7) | (1 << 9);
+
     [Header("Audio")]
     [SerializeField] private AudioClip fireSound;
 
@@ -20,6 +26,11 @@ public class Weapon : MonoBehaviour
     private Animator animator;
 
     public WeaponType WeaponType => weaponType;
+
+    public void SetWeaponType(WeaponType newWeaponType)
+    {
+        weaponType = newWeaponType;
+    }
     public int Damage => damage;
     public float Range => range;
     public float Cooldown => cooldown;
@@ -67,7 +78,7 @@ public class Weapon : MonoBehaviour
 
             if (coverTarget != null)
             {
-                coverTarget.TakeDamage(damage);
+                coverTarget.TakeDamage(damage, weaponType);
                 Debug.Log($"{gameObject.name} ({weaponType}) hit cover ({coverHit.collider.gameObject.name}) for {damage} damage");
             }
             else
@@ -78,9 +89,42 @@ public class Weapon : MonoBehaviour
             return;
         }
 
-        target.TakeDamage(damage);
+        target.TakeDamage(damage, weaponType);
 
         Debug.Log($"{gameObject.name} ({weaponType}) attacked {target.Transform.gameObject.name} for {damage} damage");
+
+        if (weaponType == WeaponType.Missile)
+            ApplySplashDamage(target);
+    }
+
+    private void ApplySplashDamage(ITargetable primaryTarget)
+    {
+        Vector3 impactPoint = primaryTarget.Transform.position;
+        int splashDamage = Mathf.RoundToInt(damage * splashDamageMultiplier);
+
+        if (splashDamage <= 0)
+            return;
+
+        Collider[] hits = Physics.OverlapSphere(impactPoint, splashRadius, splashLayer);
+        HashSet<ITargetable> damagedTargets = new HashSet<ITargetable>();
+
+        foreach (Collider hit in hits)
+        {
+            ITargetable splashTarget = hit.GetComponentInParent<ITargetable>();
+
+            if (splashTarget == null || splashTarget == primaryTarget)
+                continue;
+
+            if (!splashTarget.IsAlive)
+                continue;
+
+            if (!damagedTargets.Add(splashTarget))
+                continue;
+
+            splashTarget.TakeDamage(splashDamage, weaponType);
+
+            Debug.Log($"{gameObject.name} ({weaponType}) splash hit {splashTarget.Transform.gameObject.name} for {splashDamage} damage");
+        }
     }
 
     private bool TryGetCoverHit(ITargetable target, out RaycastHit hit)

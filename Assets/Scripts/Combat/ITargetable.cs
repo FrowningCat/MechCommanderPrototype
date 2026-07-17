@@ -6,4 +6,5 @@ public interface ITargetable
     bool IsAlive { get; }
 
     void TakeDamage(int damage);
+    void TakeDamage(int damage, WeaponType weaponType);
 }

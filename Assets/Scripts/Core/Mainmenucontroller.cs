@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
-    [Tooltip("Точное имя геймплейной сцены, регистр важен")]
-    [SerializeField] private string gameplaySceneName = "SampleScene";
+    [Tooltip("Точное имя сцены настройки меха перед миссией, регистр важен")]
+    [SerializeField] private string mechSetupSceneName = "MechSetup";
 
     [Header("Audio")]
     [SerializeField] private AudioClip menuMusic;
@@ -17,9 +17,9 @@ public class MainMenuController : MonoBehaviour
 
     public void OnPlayClicked()
     {
-        Debug.Log($"[MainMenuController] Loading scene: {gameplaySceneName}");
+        Debug.Log($"[MainMenuController] Loading scene: {mechSetupSceneName}");
 
-        SceneManager.LoadScene(gameplaySceneName);
+        SceneManager.LoadScene(mechSetupSceneName);
     }
 
     public void OnQuitClicked()

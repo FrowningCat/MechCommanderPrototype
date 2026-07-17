@@ -14,6 +14,12 @@ public class MechWeaponSystem : MonoBehaviour
     private int chainFireIndex;
 
     public bool HasWeapons => weapons != null && weapons.Length > 0;
+    public WeaponFireMode FireMode => fireMode;
+
+    public void SetFireMode(WeaponFireMode newFireMode)
+    {
+        fireMode = newFireMode;
+    }
 
     public float EffectiveRange
     {
