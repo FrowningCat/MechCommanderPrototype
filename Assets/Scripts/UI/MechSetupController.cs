@@ -33,6 +33,7 @@ public class MechSetupController : MonoBehaviour
     private Button[] weaponButtons;
     private Button[] fireModeButtons;
     private Button[] stanceButtons;
+    private Button[] mapSizeButtons;
 
     private Text modelNameText;
 
@@ -41,6 +42,7 @@ public class MechSetupController : MonoBehaviour
     private WeaponType currentWeaponType;
     private WeaponFireMode currentFireMode;
     private UnitStance currentStance;
+    private MapSize? currentMapSize;
 
     private void Awake()
     {
@@ -78,6 +80,11 @@ public class MechSetupController : MonoBehaviour
             FindButton("Btn_Stance_Passive"), FindButton("Btn_Stance_Defensive"), FindButton("Btn_Stance_Aggressive")
         };
 
+        mapSizeButtons = new[]
+        {
+            FindButton("Btn_MapSize_Small"), FindButton("Btn_MapSize_Medium"), FindButton("Btn_MapSize_Large")
+        };
+
         GameObject modelNameObject = GameObject.Find("Text_ModelName");
         modelNameText = modelNameObject != null ? modelNameObject.GetComponent<Text>() : null;
 
@@ -102,6 +109,10 @@ public class MechSetupController : MonoBehaviour
         BindClick("Btn_Stance_Defensive", () => SelectStance(UnitStance.Defensive));
         BindClick("Btn_Stance_Aggressive", () => SelectStance(UnitStance.Aggressive));
 
+        BindClick("Btn_MapSize_Small", () => SelectMapSize(MapSize.Small));
+        BindClick("Btn_MapSize_Medium", () => SelectMapSize(MapSize.Medium));
+        BindClick("Btn_MapSize_Large", () => SelectMapSize(MapSize.Large));
+
         BindClick("Btn_Start", StartMission);
         BindClick("Btn_Back", BackToMainMenu);
 
@@ -125,6 +136,7 @@ public class MechSetupController : MonoBehaviour
             currentWeaponType = loadout.SelectedWeaponType;
             currentFireMode = loadout.SelectedFireMode;
             currentStance = loadout.SelectedStance;
+            currentMapSize = loadout.SelectedMapSize;
         }
         else
         {
@@ -133,6 +145,7 @@ public class MechSetupController : MonoBehaviour
             currentWeaponType = WeaponType.Energy;
             currentFireMode = WeaponFireMode.AlphaStrike;
             currentStance = UnitStance.Defensive;
+            currentMapSize = null;
         }
 
         ApplyModelSelection();
@@ -140,6 +153,7 @@ public class MechSetupController : MonoBehaviour
         RefreshGroupSelection(weaponButtons, (int)currentWeaponType);
         RefreshGroupSelection(fireModeButtons, (int)currentFireMode);
         RefreshGroupSelection(stanceButtons, (int)currentStance);
+        RefreshGroupSelection(mapSizeButtons, currentMapSize.HasValue ? (int)currentMapSize.Value : -1);
     }
 
     private void NextModel()
@@ -206,6 +220,12 @@ public class MechSetupController : MonoBehaviour
         RefreshGroupSelection(stanceButtons, (int)stance);
     }
 
+    private void SelectMapSize(MapSize mapSize)
+    {
+        currentMapSize = mapSize;
+        RefreshGroupSelection(mapSizeButtons, (int)mapSize);
+    }
+
     private void RefreshGroupSelection(Button[] buttons, int selectedIndex)
     {
         for (int i = 0; i < buttons.Length; i++)
@@ -233,6 +253,7 @@ public class MechSetupController : MonoBehaviour
         loadout.SelectedWeaponType = currentWeaponType;
         loadout.SelectedFireMode = currentFireMode;
         loadout.SelectedStance = currentStance;
+        loadout.SelectedMapSize = currentMapSize;
 
         SceneManager.LoadScene(gameplaySceneName);
     }

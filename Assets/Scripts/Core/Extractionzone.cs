@@ -11,6 +11,12 @@ public class ExtractionZone : MonoBehaviour
 
     private readonly HashSet<GameObject> unitsInZone = new();
 
+    // Allows LevelGenerator to wire this to the scene's MissionController for procedurally instantiated zones.
+    public void SetMissionController(MissionController controller)
+    {
+        missionController = controller;
+    }
+
     private void Awake()
     {
         GetComponent<Collider>().isTrigger = true;

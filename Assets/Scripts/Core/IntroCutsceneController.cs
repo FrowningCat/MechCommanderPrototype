@@ -17,6 +17,9 @@ public class IntroCutsceneController : MonoBehaviour
     [Header("Timeline")]
     [SerializeField] private PlayableDirector director;
 
+    [Header("Combat pause (background fights shouldn't resolve during the cutscene)")]
+    [SerializeField] private MissionController missionController;
+
     [Header("Player control (disabled during cutscene)")]
     [SerializeField] private RTSInputReader inputReader;
     [SerializeField] private RTSCameraController rtsCameraController;
@@ -47,6 +50,17 @@ public class IntroCutsceneController : MonoBehaviour
     private float originalAgentSpeed;
     private bool hasEnded;
     private int activeLineIndex = -1;
+
+    private EnemyAI[] pausedEnemyAIs;
+    private MechCombat[] pausedMechCombats;
+
+    // Allows LevelGenerator to point the intro walk at the procedurally generated destination
+    // instead of the hardcoded scene value. Must be called before Start() (i.e. from another
+    // component's Awake()), since Start() is what issues the MoveTo order.
+    public void SetIntroDestination(Vector3 destination)
+    {
+        introDestination = destination;
+    }
 
     private void Awake()
     {
@@ -96,6 +110,23 @@ public class IntroCutsceneController : MonoBehaviour
             playerMechCombat.MoveTo(introDestination);
         else if (playerMech != null)
             playerMech.MoveTo(introDestination);
+
+        // EnemyAI/MechCombat/Weapon keep running in the background regardless of player input
+        // being disabled above — without this, a fight can start and resolve (even end the
+        // mission) while the player has no control yet, and Time.timeScale = 0 isn't usable
+        // here since Timeline/Animator playback depends on it. Freeze both explicitly instead,
+        // and un-freeze in the same place input/camera control is handed back.
+        pausedEnemyAIs = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
+        pausedMechCombats = FindObjectsByType<MechCombat>(FindObjectsSortMode.None);
+
+        foreach (EnemyAI enemyAI in pausedEnemyAIs)
+            enemyAI.enabled = false;
+
+        foreach (MechCombat mechCombat in pausedMechCombats)
+            mechCombat.enabled = false;
+
+        if (missionController != null)
+            missionController.SetMissionActive(false);
 
         director.stopped += OnCutsceneStopped;
         director.time = 0;
@@ -189,6 +220,27 @@ public class IntroCutsceneController : MonoBehaviour
 
         if (playerTerrainSpeedController != null)
             playerTerrainSpeedController.enabled = true;
+
+        if (pausedEnemyAIs != null)
+        {
+            foreach (EnemyAI enemyAI in pausedEnemyAIs)
+            {
+                if (enemyAI != null)
+                    enemyAI.enabled = true;
+            }
+        }
+
+        if (pausedMechCombats != null)
+        {
+            foreach (MechCombat mechCombat in pausedMechCombats)
+            {
+                if (mechCombat != null)
+                    mechCombat.enabled = true;
+            }
+        }
+
+        if (missionController != null)
+            missionController.SetMissionActive(true);
 
         if (briefingCanvasGroup != null)
             briefingCanvasGroup.alpha = 0f;

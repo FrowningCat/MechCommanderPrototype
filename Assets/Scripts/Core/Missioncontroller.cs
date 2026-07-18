@@ -18,6 +18,23 @@ public class MissionController : MonoBehaviour
 
     private float checkTimer;
 
+    // Defaults to true so scenes/tests without an IntroCutsceneController behave exactly as
+    // before. IntroCutsceneController pauses this for the duration of the intro cutscene so
+    // background combat (EnemyAI/MechCombat still running) can't end the mission before the
+    // player ever gets control.
+    private bool missionActive = true;
+
+    // Allows LevelGenerator to set the mission objective for this run before Start() reads it.
+    public void SetWinCondition(bool winOnAllEnemiesDefeatedValue)
+    {
+        winOnAllEnemiesDefeated = winOnAllEnemiesDefeatedValue;
+    }
+
+    public void SetMissionActive(bool active)
+    {
+        missionActive = active;
+    }
+
     private void Start()
     {
         int initialPlayerUnits = CountUnitsOnLayer(playerUnitLayer);
@@ -34,6 +51,9 @@ public class MissionController : MonoBehaviour
 
     private void Update()
     {
+        if (!missionActive)
+            return;
+
         if (State != MissionState.InProgress)
             return;
 
@@ -68,6 +88,9 @@ public class MissionController : MonoBehaviour
 
     public void NotifyExtractionReached()
     {
+        if (!missionActive)
+            return;
+
         if (State != MissionState.InProgress)
             return;
 

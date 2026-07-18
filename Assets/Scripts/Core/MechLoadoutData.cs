@@ -11,6 +11,10 @@ public class MechLoadoutData : MonoBehaviour
     public WeaponFireMode SelectedFireMode = WeaponFireMode.AlphaStrike;
     public UnitStance SelectedStance = UnitStance.Defensive;
 
+    [Header("Mission")]
+    // Null = random map size (default). Set from the MechSetup screen to force a specific size.
+    public MapSize? SelectedMapSize = null;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
