@@ -36,12 +36,17 @@ public class Weapon : MonoBehaviour
     public float Cooldown => cooldown;
     public float HeatPerShot => heatPerShot;
 
+    // Base damage modified by the weapon type multiplier (see WeaponBalance) — the real number
+    // that gets dealt on hit. Whoever needs to show or apply "the damage" should use this, not
+    // the raw Damage field, so combat and UI never disagree.
+    public int EffectiveDamage => WeaponBalance.ComputeEffectiveDamage(damage, weaponType);
+
     private void Awake()
     {
         animator = GetComponentInChildren<Animator>();
     }
 
-    public bool CanAttack(ITargetable target)
+    public bool CanAttack(ITargetable target, float cooldownMultiplier = 1f)
     {
         if (target == null)
             return false;
@@ -49,7 +54,7 @@ public class Weapon : MonoBehaviour
         if (!target.IsAlive)
             return false;
 
-        if (Time.time < lastAttackTime + cooldown)
+        if (Time.time < lastAttackTime + cooldown * cooldownMultiplier)
             return false;
 
         float distance = Vector3.Distance(transform.position, target.Transform.position);
@@ -60,12 +65,14 @@ public class Weapon : MonoBehaviour
         return true;
     }
 
-    public void TryAttack(ITargetable target)
+    public void TryAttack(ITargetable target, float cooldownMultiplier = 1f)
     {
-        if (!CanAttack(target))
+        if (!CanAttack(target, cooldownMultiplier))
             return;
 
         lastAttackTime = Time.time;
+
+        int effectiveDamage = EffectiveDamage;
 
         if (animator != null)
             animator.SetTrigger("Attack");
@@ -78,8 +85,8 @@ public class Weapon : MonoBehaviour
 
             if (coverTarget != null)
             {
-                coverTarget.TakeDamage(damage, weaponType);
-                Debug.Log($"{gameObject.name} ({weaponType}) hit cover ({coverHit.collider.gameObject.name}) for {damage} damage");
+                coverTarget.TakeDamage(effectiveDamage, weaponType);
+                Debug.Log($"{gameObject.name} ({weaponType}) hit cover ({coverHit.collider.gameObject.name}) for {effectiveDamage} damage");
             }
             else
             {
@@ -89,18 +96,18 @@ public class Weapon : MonoBehaviour
             return;
         }
 
-        target.TakeDamage(damage, weaponType);
+        target.TakeDamage(effectiveDamage, weaponType);
 
-        Debug.Log($"{gameObject.name} ({weaponType}) attacked {target.Transform.gameObject.name} for {damage} damage");
+        Debug.Log($"{gameObject.name} ({weaponType}) attacked {target.Transform.gameObject.name} for {effectiveDamage} damage");
 
         if (weaponType == WeaponType.Missile)
-            ApplySplashDamage(target);
+            ApplySplashDamage(target, effectiveDamage);
     }
 
-    private void ApplySplashDamage(ITargetable primaryTarget)
+    private void ApplySplashDamage(ITargetable primaryTarget, int effectiveDamage)
     {
         Vector3 impactPoint = primaryTarget.Transform.position;
-        int splashDamage = Mathf.RoundToInt(damage * splashDamageMultiplier);
+        int splashDamage = Mathf.RoundToInt(effectiveDamage * splashDamageMultiplier);
 
         if (splashDamage <= 0)
             return;

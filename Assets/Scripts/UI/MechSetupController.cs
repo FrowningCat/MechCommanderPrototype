@@ -12,6 +12,9 @@ public class MechSetupController : MonoBehaviour
 
     [SerializeField] private float previewRotationSpeed = 20f;
 
+    [Tooltip("Player Mech prefab — read directly (not instantiated) as the single source of truth for the live stats panel, so displayed numbers can never drift from what MechLoadoutApplier actually applies in-game.")]
+    [SerializeField] private GameObject mechPrefabReference;
+
     private static readonly string[] ModelNames = { "George", "Leela", "Mike", "Stan" };
     private static readonly Color[] ColorPresets =
     {
@@ -36,6 +39,11 @@ public class MechSetupController : MonoBehaviour
     private Button[] mapSizeButtons;
 
     private Text modelNameText;
+    private Text statsText;
+
+    private MechLoadoutApplier mechPrefabApplier;
+    private Health mechPrefabHealth;
+    private Weapon mechPrefabWeapon;
 
     private int currentModelIndex;
     private Color currentColor;
@@ -87,6 +95,16 @@ public class MechSetupController : MonoBehaviour
 
         GameObject modelNameObject = GameObject.Find("Text_ModelName");
         modelNameText = modelNameObject != null ? modelNameObject.GetComponent<Text>() : null;
+
+        GameObject statsObject = GameObject.Find("Text_Stats");
+        statsText = statsObject != null ? statsObject.GetComponent<Text>() : null;
+
+        if (mechPrefabReference != null)
+        {
+            mechPrefabApplier = mechPrefabReference.GetComponent<MechLoadoutApplier>();
+            mechPrefabHealth = mechPrefabReference.GetComponent<Health>();
+            mechPrefabWeapon = mechPrefabReference.GetComponent<Weapon>();
+        }
 
         BindClick("Btn_PrevModel", PreviousModel);
         BindClick("Btn_NextModel", NextModel);
@@ -180,6 +198,43 @@ public class MechSetupController : MonoBehaviour
             modelNameText.text = ModelNames[currentModelIndex];
 
         MechColorUtility.ApplyPlayerColor(modelInstances[currentModelIndex], currentColor);
+
+        RefreshStatsPanel();
+    }
+
+    // Pulls the same real values MechLoadoutApplier applies in-game (Health.maxHealth/armorValue
+    // per selected model, Weapon.damage) straight off the player Mech prefab, so this panel can
+    // never show a made-up number. Weapon type/fire mode/stance currently don't change any of
+    // these numbers on the actual mech, so they intentionally aren't reflected here — showing a
+    // fake dependency would be worse than not showing one.
+    private void RefreshStatsPanel()
+    {
+        if (statsText == null)
+            return;
+
+        if (mechPrefabApplier == null || mechPrefabHealth == null)
+        {
+            statsText.text = string.Empty;
+            return;
+        }
+
+        MechLoadoutApplier.ModelStats stats = mechPrefabApplier.GetModelStats(currentModelIndex);
+
+        int damage = 0;
+        float cooldown = 0f;
+
+        if (mechPrefabWeapon != null)
+        {
+            damage = WeaponBalance.ComputeEffectiveDamage(mechPrefabWeapon.Damage, currentWeaponType);
+            cooldown = WeaponBalance.ComputeEffectiveCooldown(mechPrefabWeapon.Cooldown, currentFireMode);
+        }
+
+        statsText.text =
+            "HP: " + stats.maxHealth + "\n" +
+            "Броня: " + stats.armorValue + "\n" +
+            "Урон: " + damage + "\n" +
+            "Кулдаун: " + cooldown.ToString("0.0") + " сек\n" +
+            "Скорость: " + stats.agentSpeed;
     }
 
     private void SelectColor(int index)
@@ -206,12 +261,14 @@ public class MechSetupController : MonoBehaviour
     {
         currentWeaponType = weaponType;
         RefreshGroupSelection(weaponButtons, (int)weaponType);
+        RefreshStatsPanel();
     }
 
     private void SelectFireMode(WeaponFireMode fireMode)
     {
         currentFireMode = fireMode;
         RefreshGroupSelection(fireModeButtons, (int)fireMode);
+        RefreshStatsPanel();
     }
 
     private void SelectStance(UnitStance stance)

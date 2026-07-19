@@ -22,9 +22,9 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private MapSize forcedMapSize = MapSize.Medium;
 
     [Header("Map size parameters")]
-    [SerializeField] private MapSizeSettings small = new MapSizeSettings { areaSize = 40f, minEnemies = 3, maxEnemies = 4 };
-    [SerializeField] private MapSizeSettings medium = new MapSizeSettings { areaSize = 70f, minEnemies = 4, maxEnemies = 6 };
-    [SerializeField] private MapSizeSettings large = new MapSizeSettings { areaSize = 100f, minEnemies = 5, maxEnemies = 7 };
+    [SerializeField] private MapSizeSettings small = new MapSizeSettings { areaSize = 58f, minEnemies = 3, maxEnemies = 4 };
+    [SerializeField] private MapSizeSettings medium = new MapSizeSettings { areaSize = 98f, minEnemies = 4, maxEnemies = 6 };
+    [SerializeField] private MapSizeSettings large = new MapSizeSettings { areaSize = 140f, minEnemies = 5, maxEnemies = 7 };
 
     [Header("Scene refs — core systems")]
     [SerializeField] private Transform groundPlane;
@@ -60,8 +60,10 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private float pickupMinDistanceFromOthers = 5f;
     [SerializeField] private float repairZoneForwardOffset = 8f;
     [SerializeField] private int enemiesRequiredForRepairZone = 3;
-    [SerializeField] private float playerSpawnWaterClearance = 4f;
-    [SerializeField] private int playerSpawnMaxAttempts = 20;
+    [Tooltip("Minimum distance any spawn point (player or enemy) must keep from the water border specifically.")]
+    [SerializeField] private float spawnWaterClearance = 5f;
+    [SerializeField] private int playerSpawnMaxAttempts = 40;
+    [SerializeField] private int enemySpawnMaxAttempts = 150;
 
     public MapSize GeneratedMapSize { get; private set; }
     public bool GeneratedWinOnAllEnemiesDefeated { get; private set; }
@@ -279,6 +281,30 @@ public class LevelGenerator : MonoBehaviour
         return pos;
     }
 
+    // Rejects points that don't sample onto the NavMesh at all (e.g. landing inside a building's
+    // carved-out footprint), and points that are too close to the water border specifically.
+    // Water is a known ring starting exactly at |x| or |z| > half (see BuildWaterBorder), so we
+    // measure clearance analytically against that boundary instead of NavMesh.FindClosestEdge —
+    // FindClosestEdge also fires on ordinary building/cover edges scattered across the interior,
+    // which made it reject the vast majority of the map and isn't what we're trying to avoid here.
+    // Shared by the player spawn and every enemy spawn so both use exactly the same rule.
+    private bool TryValidateSpawnPoint(Vector3 candidate, float half, out Vector3 validPosition)
+    {
+        if (NavMesh.SamplePosition(candidate, out NavMeshHit sample, 3f, NavMesh.AllAreas))
+        {
+            float distanceToWaterBoundary = half - Mathf.Max(Mathf.Abs(sample.position.x), Mathf.Abs(sample.position.z));
+
+            if (distanceToWaterBoundary >= spawnWaterClearance)
+            {
+                validPosition = sample.position;
+                return true;
+            }
+        }
+
+        validPosition = default;
+        return false;
+    }
+
     // Requires the NavMesh to already be baked and registered (see Generate()).
     private Vector3 FindValidPlayerSpawn(float half, float y)
     {
@@ -291,19 +317,8 @@ public class LevelGenerator : MonoBehaviour
                 ? preferred
                 : new Vector3(Random.Range(-limit, limit), y, Random.Range(-limit, limit));
 
-            if (!NavMesh.SamplePosition(candidate, out NavMeshHit sample, 3f, NavMesh.AllAreas))
-                continue;
-
-            // Rejects points sampled on the "Not Walkable" water area, and points on walkable
-            // ground that are still too close to the nearest NavMesh boundary (water edge or
-            // any other obstacle), so the player never spawns pinned against an impassable edge.
-            if (!NavMesh.FindClosestEdge(sample.position, out NavMeshHit edge, NavMesh.AllAreas))
-                continue;
-
-            if (edge.distance < playerSpawnWaterClearance)
-                continue;
-
-            return sample.position;
+            if (TryValidateSpawnPoint(candidate, half, out Vector3 validPosition))
+                return validPosition;
         }
 
         Debug.LogWarning($"[LevelGenerator] Не удалось найти валидную точку спавна игрока за {playerSpawnMaxAttempts} попыток — использую центр карты как запасной вариант.");
@@ -363,26 +378,35 @@ public class LevelGenerator : MonoBehaviour
         {
             bool placed = false;
 
-            for (int attempt = 0; attempt < 500 && !placed; attempt++)
+            for (int attempt = 0; attempt < enemySpawnMaxAttempts && !placed; attempt++)
             {
                 Vector3 candidate = new Vector3(
                     Random.Range(-limit, limit),
                     playerPos.y,
                     Random.Range(-limit, limit));
 
-                if (Vector3.Distance(candidate, playerPos) < enemyMinDistanceFromPlayer)
+                if (!TryValidateSpawnPoint(candidate, half, out Vector3 validPosition))
                     continue;
 
-                if (TooCloseToAny(candidate, result, enemyMinDistanceFromOthers))
+                if (Vector3.Distance(validPosition, playerPos) < enemyMinDistanceFromPlayer)
                     continue;
 
-                result.Add(candidate);
+                if (TooCloseToAny(validPosition, result, enemyMinDistanceFromOthers))
+                    continue;
+
+                result.Add(validPosition);
                 placed = true;
             }
 
             if (!placed)
             {
-                result.Add(new Vector3(Random.Range(-limit, limit), playerPos.y, Random.Range(-limit, limit)));
+                Debug.LogWarning($"[LevelGenerator] Не удалось найти валидную точку спавна врага #{i} за {enemySpawnMaxAttempts} попыток — использую последнюю попавшуюся позицию без полной проверки.");
+
+                Vector3 fallback = new Vector3(Random.Range(-limit, limit), playerPos.y, Random.Range(-limit, limit));
+                if (TryValidateSpawnPoint(fallback, half, out Vector3 validFallback))
+                    fallback = validFallback;
+
+                result.Add(fallback);
             }
         }
 

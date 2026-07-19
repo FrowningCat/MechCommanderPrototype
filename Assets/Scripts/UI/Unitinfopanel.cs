@@ -109,7 +109,7 @@ public class UnitInfoPanel : MonoBehaviour
         if (statsText != null && trackedWeapon != null && trackedHealth != null)
         {
             statsText.text =
-                $"Урон: {trackedWeapon.Damage}\n" +
+                $"Урон: {trackedWeapon.EffectiveDamage}\n" +
                 $"Дальность: {trackedWeapon.Range}\n" +
                 $"Броня: {trackedHealth.ArmorValue}";
         }

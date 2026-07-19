@@ -133,8 +133,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea205fdb5f4bb524d90414a2c1325681, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 100
-  armorValue: 3
+  maxHealth: 150
+  armorValue: 6
   hitSound: {fileID: 0}
   destructionSound: {fileID: 0}
 --- !u!195 &7625719053546314494
@@ -147,7 +147,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 3.0905795
-  m_Speed: 4
+  m_Speed: 3
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 180
@@ -180,6 +180,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   lineOfSightHeightOffset: 1
+  splashRadius: 3
+  splashDamageMultiplier: 0.4
+  splashLayer:
+    serializedVersion: 2
+    m_Bits: 704
   fireSound: {fileID: 0}
 --- !u!114 &5587161802111376679
 MonoBehaviour:

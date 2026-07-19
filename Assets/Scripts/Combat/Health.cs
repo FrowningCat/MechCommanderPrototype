@@ -23,6 +23,16 @@ public class Health : MonoBehaviour, ITargetable
 
     public event System.Action OnDamaged;
 
+    // Lets a per-variant loadout system (e.g. MechLoadoutApplier) override the inspector
+    // defaults at runtime. Resets currentHealth immediately so this is safe to call either
+    // before or after Awake(), regardless of script execution order.
+    public void ConfigureStats(int newMaxHealth, int newArmorValue)
+    {
+        maxHealth = newMaxHealth;
+        armorValue = newArmorValue;
+        currentHealth = maxHealth;
+    }
+
     private void Awake()
     {
         currentHealth = maxHealth;

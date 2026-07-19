@@ -95,13 +95,15 @@ public class MechWeaponSystem : MonoBehaviour
 
     private bool TryFireWeapon(Weapon weapon, ITargetable target)
     {
-        if (!weapon.CanAttack(target))
+        float cooldownMultiplier = WeaponBalance.GetCooldownMultiplier(fireMode);
+
+        if (!weapon.CanAttack(target, cooldownMultiplier))
             return false;
 
-        weapon.TryAttack(target);
+        weapon.TryAttack(target, cooldownMultiplier);
 
         if (heat != null)
-            heat.AddHeat(weapon.HeatPerShot);
+            heat.AddHeat(WeaponBalance.ComputeEffectiveHeat(weapon.HeatPerShot, fireMode));
 
         return true;
     }

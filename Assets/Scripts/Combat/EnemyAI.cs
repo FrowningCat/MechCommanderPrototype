@@ -10,6 +10,9 @@ public class EnemyAI : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float movementThreshold = 0.1f;
 
+    [Header("Combat Facing")]
+    [SerializeField] private float combatRotationSpeed = 240f;
+
     private NavMeshAgent agent;
     private MechWeaponSystem weaponSystem;
     private ITargetable currentTarget;
@@ -40,12 +43,14 @@ public class EnemyAI : MonoBehaviour
 
         if (distance > weaponSystem.EffectiveRange)
         {
+            CombatFacing.ResumeAgentRotation(agent);
             agent.isStopped = false;
             agent.SetDestination(currentTarget.Transform.position);
         }
         else
         {
             agent.isStopped = true;
+            CombatFacing.FaceTarget(transform, agent, currentTarget.Transform.position, combatRotationSpeed);
             weaponSystem.TryFireAt(currentTarget);
         }
     }

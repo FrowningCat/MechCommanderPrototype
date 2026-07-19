@@ -147,7 +147,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 2.8532686
-  m_Speed: 4
+  m_Speed: 4.5
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 180
@@ -180,6 +180,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   lineOfSightHeightOffset: 1
+  splashRadius: 3
+  splashDamageMultiplier: 0.4
+  splashLayer:
+    serializedVersion: 2
+    m_Bits: 704
   fireSound: {fileID: 0}
 --- !u!114 &5587161802111376679
 MonoBehaviour:

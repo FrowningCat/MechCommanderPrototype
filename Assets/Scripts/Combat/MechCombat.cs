@@ -18,6 +18,9 @@ public class MechCombat : MonoBehaviour
     [Header("Patrol")]
     [SerializeField] private float patrolWaypointThreshold = 0.5f;
 
+    [Header("Combat Facing")]
+    [SerializeField] private float combatRotationSpeed = 240f;
+
     private NavMeshAgent agent;
     private MechWeaponSystem weaponSystem;
 
@@ -156,6 +159,11 @@ public class MechCombat : MonoBehaviour
         currentTarget = null;
         guardTarget = null;
         patrolPoints.Clear();
+
+        // Any freshly issued order may involve movement — release the combat-facing override
+        // so the agent goes back to steering rotation from its own path direction. Engage
+        // handlers turn it off again on their own each frame if/while actually firing in place.
+        CombatFacing.ResumeAgentRotation(agent);
     }
 
     // ---------- Order handlers ----------
@@ -285,12 +293,14 @@ public class MechCombat : MonoBehaviour
 
         if (distance > weaponSystem.EffectiveRange)
         {
+            CombatFacing.ResumeAgentRotation(agent);
             agent.isStopped = false;
             agent.SetDestination(currentTarget.Transform.position);
         }
         else
         {
             agent.isStopped = true;
+            CombatFacing.FaceTarget(transform, agent, currentTarget.Transform.position, combatRotationSpeed);
             weaponSystem.TryFireAt(currentTarget);
         }
     }
@@ -300,7 +310,10 @@ public class MechCombat : MonoBehaviour
         float distance = Vector3.Distance(transform.position, currentTarget.Transform.position);
 
         if (distance <= weaponSystem.EffectiveRange)
+        {
+            CombatFacing.FaceTarget(transform, agent, currentTarget.Transform.position, combatRotationSpeed);
             weaponSystem.TryFireAt(currentTarget);
+        }
     }
 
     private void ReturnToAnchor()
