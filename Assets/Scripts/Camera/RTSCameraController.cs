@@ -15,6 +15,15 @@ public class RTSCameraController : MonoBehaviour
     [SerializeField] private float minHeight = 10f;
     [SerializeField] private float maxHeight = 60f;
 
+    // Left permissive by default so the camera behaves exactly as before (unbounded) in any
+    // scene/context that never calls SetBounds — LevelGenerator is what supplies real limits,
+    // derived from the actual baked NavMesh bounding box rather than a symmetric half-extent
+    // (generated maps aren't square).
+    private float boundMinX = Mathf.NegativeInfinity;
+    private float boundMaxX = Mathf.Infinity;
+    private float boundMinZ = Mathf.NegativeInfinity;
+    private float boundMaxZ = Mathf.Infinity;
+
     private InputSystem_Actions inputActions;
 
     private void Awake()
@@ -50,7 +59,11 @@ public class RTSCameraController : MonoBehaviour
 
         Vector3 moveDirection = new Vector3(finalInput.x, 0f, finalInput.y);
 
-        transform.position += moveDirection * moveSpeed * Time.deltaTime;
+        Vector3 newPosition = transform.position + moveDirection * moveSpeed * Time.deltaTime;
+        newPosition.x = Mathf.Clamp(newPosition.x, boundMinX, boundMaxX);
+        newPosition.z = Mathf.Clamp(newPosition.z, boundMinZ, boundMaxZ);
+
+        transform.position = newPosition;
     }
 
     private Vector2 GetMouseEdgeInput()
@@ -92,9 +105,20 @@ public class RTSCameraController : MonoBehaviour
     {
         Vector3 newPosition = transform.position;
 
-        newPosition.x = point.x;
-        newPosition.z = point.z - 20f;
+        newPosition.x = Mathf.Clamp(point.x, boundMinX, boundMaxX);
+        newPosition.z = Mathf.Clamp(point.z - 20f, boundMinZ, boundMaxZ);
 
         transform.position = newPosition;
+    }
+
+    // Called by LevelGenerator once the mission's actual walkable footprint is known (the real
+    // baked NavMesh bounding box, not a symmetric half-extent — generated maps aren't square),
+    // so the camera can't pan past the generated level's real ground edge.
+    public void SetBounds(float minX, float maxX, float minZ, float maxZ)
+    {
+        boundMinX = minX;
+        boundMaxX = maxX;
+        boundMinZ = minZ;
+        boundMaxZ = maxZ;
     }
 }

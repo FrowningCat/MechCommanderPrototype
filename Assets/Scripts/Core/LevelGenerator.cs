@@ -17,14 +17,19 @@ public class LevelGenerator : MonoBehaviour
         public int maxEnemies;
     }
 
+    private struct GroundBounds
+    {
+        public float minX, maxX, minZ, maxZ;
+    }
+
     [Header("Testing override")]
     [SerializeField] private bool overrideMapSize = false;
     [SerializeField] private MapSize forcedMapSize = MapSize.Medium;
 
     [Header("Map size parameters")]
-    [SerializeField] private MapSizeSettings small = new MapSizeSettings { areaSize = 58f, minEnemies = 3, maxEnemies = 4 };
-    [SerializeField] private MapSizeSettings medium = new MapSizeSettings { areaSize = 98f, minEnemies = 4, maxEnemies = 6 };
-    [SerializeField] private MapSizeSettings large = new MapSizeSettings { areaSize = 140f, minEnemies = 5, maxEnemies = 7 };
+    [SerializeField] private MapSizeSettings small = new MapSizeSettings { areaSize = 40f, minEnemies = 1, maxEnemies = 2 };
+    [SerializeField] private MapSizeSettings medium = new MapSizeSettings { areaSize = 70f, minEnemies = 4, maxEnemies = 6 };
+    [SerializeField] private MapSizeSettings large = new MapSizeSettings { areaSize = 100f, minEnemies = 5, maxEnemies = 7 };
 
     [Header("Scene refs — core systems")]
     [SerializeField] private Transform groundPlane;
@@ -33,6 +38,7 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private UnitSpawner unitSpawner;
     [SerializeField] private IntroCutsceneController introCutsceneController;
     [SerializeField] private Transform playerMech;
+    [SerializeField] private RTSCameraController rtsCameraController;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject waterZonePrefab;
@@ -40,8 +46,10 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private GameObject repairZonePrefab;
     [SerializeField] private GameObject extractionZonePrefab;
 
-    [Header("Legacy decorative zones (disabled if they no longer fit the generated area)")]
+    [Header("Legacy decorative zones (repositioned/rescaled to match the generated area)")]
     [SerializeField] private GameObject[] legacyGroundZones;
+    [Tooltip("The areaSize the legacyGroundZones' authored positions/scales were hand-placed for (currently the Large preset, 100). Every zone is uniformly scaled from the world origin by (current areaSize / this value), so the same hand-authored road/mud/rocks layout grows or shrinks with the generated map instead of clipping or leaving gaps.")]
+    [SerializeField] private float terrainZoneReferenceAreaSize = 100f;
 
     [Header("Intro cutscene tie-ins")]
     [SerializeField] private Transform enemySilhouetteIntro;
@@ -54,19 +62,34 @@ public class LevelGenerator : MonoBehaviour
     [Header("Placement tuning")]
     [SerializeField] private float playerSpawnEdgeInset = 8f;
     [SerializeField] private float edgeMargin = 4f;
-    [SerializeField] private float waterThickness = 8f;
+    [Tooltip("Gap left between the real NavMesh bounding box edge and the inner edge of the water ring, so the water never overlaps real dry ground (the bounding box is not a square — e.g. a road segment's tip can stick out past the map's nominal half-size).")]
+    [SerializeField] private float waterInnerGap = 2f;
+    [Tooltip("The water ring's outer edge extends this many times the NavMesh bounding box's largest dimension beyond its own edge, so water is always well past the camera's pan/zoom limits (see cameraBoundsSlack) no matter the map shape. Water no longer needs to track areaSize precisely (see design notes) — it's a background visual only.")]
+    [SerializeField] private float waterExtentMultiplier = 4f;
+    [Tooltip("Camera pan bounds extend this far OUTSIDE the real NavMesh bounding box on every side, so panning to the limit shows a comfortable strip of water instead of stopping dead at the dry-ground edge.")]
+    [SerializeField] private float cameraBoundsSlack = 6f;
+    [Tooltip("Extra slack added on top of cameraBoundsSlack for the bottom (-Z) camera bound specifically — panning toward the player's start edge felt like it hit a wall.")]
+    [SerializeField] private float cameraBoundsBottomExtraSlack = 6f;
     [SerializeField] private float enemyMinDistanceFromPlayer = 14f;
     [SerializeField] private float enemyMinDistanceFromOthers = 9f;
     [SerializeField] private float pickupMinDistanceFromOthers = 5f;
     [SerializeField] private float repairZoneForwardOffset = 8f;
     [SerializeField] private int enemiesRequiredForRepairZone = 3;
-    [Tooltip("Minimum distance any spawn point (player or enemy) must keep from the water border specifically.")]
-    [SerializeField] private float spawnWaterClearance = 5f;
     [SerializeField] private int playerSpawnMaxAttempts = 40;
     [SerializeField] private int enemySpawnMaxAttempts = 150;
+    [Tooltip("Max distance NavMesh.SamplePosition is allowed to snap a randomly-picked ground point by. Small on purpose — the point already came from the NavMesh triangulation itself, this just rejects points that land in carved-out holes (e.g. inside a building footprint).")]
+    [SerializeField] private float groundSampleMaxDistance = 0.5f;
+
+    [Header("Enemy count from real walkable area")]
+    [Tooltip("enemyCount = round(realWalkableNavMeshArea / this), then clamped to the resolved MapSizeSettings' min/maxEnemies. Tuned from the Large preset's measured walkable area (~9384 sq. units at areaSize=100) landing near the middle of its 5-7 enemy range.")]
+    [SerializeField] private float navMeshAreaPerEnemy = 1550f;
 
     public MapSize GeneratedMapSize { get; private set; }
     public bool GeneratedWinOnAllEnemiesDefeated { get; private set; }
+
+    private NavMeshTriangulation cachedTriangulation;
+    private float[] cachedCumulativeTriangleAreas;
+    private float cachedTotalWalkableArea;
 
     private void Awake()
     {
@@ -78,28 +101,49 @@ public class LevelGenerator : MonoBehaviour
         MapSizeSettings settings = ResolveMapSize(out MapSize mapSize);
         GeneratedMapSize = mapSize;
 
-        float half = settings.areaSize * 0.5f;
-        int enemyCount = Random.Range(settings.minEnemies, settings.maxEnemies + 1);
+        // Only the terrain zones (the actual dry-ground meshes) need to be in place before the
+        // bake — ground/water are purely background visuals now and are sized AFTER the real
+        // walkable footprint is known (below), instead of from the nominal areaSize/half square.
+        // The old order (resize ground+water from `half`, THEN bake) is what caused the
+        // ground-truth bug this pass fixes: legacyGroundZones are hand-authored around the origin
+        // and uniformly scaled by areaSize, so their real extent does not necessarily fit inside
+        // the nominal half-square (e.g. a road segment's tip can stick out past `half` on one
+        // axis) — water built from `half` then visually overlapped real dry ground at those tips.
+        ScaleLegacyZones(settings.areaSize);
 
-        ResizeGround(half);
-        BuildWaterBorder(half);
-        ToggleLegacyZones(half);
-
-        // Static geometry (ground + water) is final now — bake before anything below queries the
-        // NavMesh (player spawn validation, agent placement, pathfinding).
+        // Static geometry (repositioned terrain zones) is final now — bake before anything below
+        // queries the NavMesh (player spawn validation, agent placement, pathfinding).
         // BuildNavMesh() only registers the result into the live NavMesh query system (AddData())
-        // when the surface component is already "active and enabled" — which, this early in Awake(),
-        // it may not be yet (OnEnable for other scene objects hasn't run). Register explicitly so the
-        // freshly baked mesh is queryable immediately, in this same Awake() call.
+        // when the surface component is already "active and enabled" — which, this early in
+        // Awake(), it may not be yet (OnEnable for other scene objects hasn't run). Register
+        // explicitly so the freshly baked mesh is queryable immediately, in this same Awake() call.
         if (navMeshSurface != null)
         {
+            // RemoveAllNavMeshData() guards against stale NavMeshData instances lingering in the
+            // live NavMesh query system from a previous bake (e.g. domain-reload-disabled editor
+            // sessions, or manual re-bakes) — CalculateTriangulation() below sums every currently
+            // registered NavMeshData, so leftover data would silently inflate every area/bounds
+            // calculation that depends on it.
+            NavMesh.RemoveAllNavMeshData();
             navMeshSurface.BuildNavMesh();
-            navMeshSurface.RemoveData();
             navMeshSurface.AddData();
         }
 
+        CacheTriangulation();
+        GroundBounds groundBounds = ComputeGroundBounds();
+
+        // Ground backdrop + water are sized from the REAL baked bounding box, not `half` — this
+        // guarantees the water ring's inner edge never overlaps real dry ground regardless of the
+        // terrain shape, and its outer edge is pushed well past any camera bounds/view distance
+        // (see cameraBoundsSlack below) so the player can never pan or zoom out far enough to see
+        // its edge.
+        ResizeAndPlaceGround(groundBounds);
+        BuildWaterBorder(groundBounds);
+
+        int enemyCount = ComputeEnemyCount(settings);
+
         Vector3 oldPlayerPos = playerMech != null ? playerMech.position : Vector3.zero;
-        Vector3 newPlayerPos = FindValidPlayerSpawn(half, oldPlayerPos.y);
+        Vector3 newPlayerPos = FindValidPlayerSpawn(groundBounds, oldPlayerPos.y);
         Vector3 delta = newPlayerPos - oldPlayerPos;
 
         NavMeshAgent playerAgent = playerMech != null ? playerMech.GetComponent<NavMeshAgent>() : null;
@@ -109,20 +153,30 @@ public class LevelGenerator : MonoBehaviour
         if (playerMech != null)
             playerMech.position = newPlayerPos;
 
-        float outerHalf = half + waterThickness;
-        ShiftAndClamp(introCameraShots, delta, outerHalf);
-        ShiftAndClamp(dialogueTriggers, delta, outerHalf);
+        ShiftAndClamp(introCameraShots, delta, groundBounds);
+        ShiftAndClamp(dialogueTriggers, delta, groundBounds);
+
+        if (rtsCameraController != null)
+        {
+            // Bounds extend OUTSIDE the real dry-ground edge (asymmetric: extra slack on -Z) so
+            // panning to the limit shows a comfortable strip of water instead of stopping dead at
+            // the ground edge — water (built above, waterExtentMultiplier times the bounding box)
+            // extends far enough past this that its own edge is never visible.
+            rtsCameraController.SetBounds(
+                groundBounds.minX - cameraBoundsSlack, groundBounds.maxX + cameraBoundsSlack,
+                groundBounds.minZ - cameraBoundsSlack - cameraBoundsBottomExtraSlack, groundBounds.maxZ + cameraBoundsSlack);
+            rtsCameraController.FocusOnPoint(newPlayerPos);
+        }
 
         bool winOnAllEnemiesDefeated = Random.value < 0.5f;
         GeneratedWinOnAllEnemiesDefeated = winOnAllEnemiesDefeated;
 
-        float destinationZ = Mathf.Min(newPlayerPos.z + introForwardDistance, half - edgeMargin);
-        Vector3 introDestination = new Vector3(0f, newPlayerPos.y, destinationZ);
+        Vector3 introDestination = FindIntroDestination(newPlayerPos, groundBounds);
 
         if (introCutsceneController != null)
             introCutsceneController.SetIntroDestination(introDestination);
 
-        PlaceDeadMechs(newPlayerPos, introDestination, outerHalf);
+        PlaceDeadMechs(newPlayerPos, introDestination, groundBounds);
 
         if (playerAgent != null)
         {
@@ -131,7 +185,7 @@ public class LevelGenerator : MonoBehaviour
         }
 
         CleanupOldEnemySpawnPoints();
-        List<Vector3> enemyPositions = GenerateEnemyPositions(enemyCount, half, newPlayerPos);
+        List<Vector3> enemyPositions = GenerateEnemyPositions(enemyCount, newPlayerPos);
         CreateEnemySpawnPoints(enemyPositions);
 
         if (unitSpawner != null)
@@ -140,13 +194,13 @@ public class LevelGenerator : MonoBehaviour
         PlaceEnemySilhouette(newPlayerPos, enemyPositions);
 
         List<Vector3> occupiedPoints = new List<Vector3>(enemyPositions) { newPlayerPos };
-        PlaceHealthPickup(half, newPlayerPos, occupiedPoints);
+        PlaceHealthPickup(newPlayerPos, occupiedPoints);
 
         if (enemyCount > enemiesRequiredForRepairZone)
-            PlaceRepairZone(half, newPlayerPos);
+            PlaceRepairZone(newPlayerPos);
 
         if (!winOnAllEnemiesDefeated)
-            PlaceExtractionZone(half, newPlayerPos);
+            PlaceExtractionZone(groundBounds, newPlayerPos);
 
         if (missionController != null)
             missionController.SetWinCondition(winOnAllEnemiesDefeated);
@@ -175,36 +229,66 @@ public class LevelGenerator : MonoBehaviour
         };
     }
 
-    private void ResizeGround(float half)
+    // Sized and centered from the real baked NavMesh bounding box (not the nominal areaSize
+    // square) — see the note in Generate() for why the square math was wrong. This is a pure
+    // background visual with no gameplay role, so it's simply blown out to comfortably outrun the
+    // water ring (which itself outruns the camera bounds) rather than needing an exact fit.
+    private void ResizeAndPlaceGround(GroundBounds bounds)
     {
         if (groundPlane == null)
             return;
 
-        float outerSize = (half + waterThickness) * 2f;
+        float centerX = (bounds.minX + bounds.maxX) * 0.5f;
+        float centerZ = (bounds.minZ + bounds.maxZ) * 0.5f;
+        float footprint = Mathf.Max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
+        // Must match BuildWaterBorder's outer span (footprint * waterExtentMultiplier) exactly —
+        // this used to be double that, so the ground backdrop stuck out past the water ring's
+        // outer edge as a visible grey band around small maps, where the extra margin is a much
+        // bigger fraction of what's on screen at normal zoom.
+        float outerSize = footprint * waterExtentMultiplier;
+
+        groundPlane.position = new Vector3(centerX, groundPlane.position.y, centerZ);
         // Unity's default Plane mesh is 10x10 at scale 1.
         float scale = outerSize / 10f;
         groundPlane.localScale = new Vector3(scale, groundPlane.localScale.y, scale);
     }
 
-    private void ToggleLegacyZones(float half)
+    // The hand-placed road/mud/rocks meshes (and the Cover prop sitting among them) were authored
+    // once, around the world origin, to fit terrainZoneReferenceAreaSize (the Large preset). They
+    // don't render or collide — they sit on the VisualOnly layer purely as ground texture, with the
+    // actual NavMesh baked directly from them (see the Plane's NavMeshSurface layer mask) — so
+    // uniformly scaling every zone's position and (for the terrain meshes, not the Cover prop) size
+    // by the same factor the map itself is scaled by keeps the baked walkable area exactly matching
+    // what's rendered, at every MapSize, without needing per-size on/off toggling.
+    private void ScaleLegacyZones(float areaSize)
     {
         if (legacyGroundZones == null)
             return;
 
-        float limit = half - edgeMargin;
+        float factor = areaSize / terrainZoneReferenceAreaSize;
 
         foreach (GameObject zone in legacyGroundZones)
         {
             if (zone == null)
                 continue;
 
-            Vector3 p = zone.transform.position;
-            bool fits = Mathf.Abs(p.x) <= limit && Mathf.Abs(p.z) <= limit;
-            zone.SetActive(fits);
+            zone.transform.position *= factor;
+
+            if (zone.name.StartsWith("TerrainZone_"))
+                zone.transform.localScale *= factor;
+
+            zone.SetActive(true);
         }
     }
 
-    private void BuildWaterBorder(float half)
+    // Built from the real baked NavMesh bounding box, not the nominal areaSize/half square — the
+    // ring's inner edge sits waterInnerGap outside `bounds`, which by definition contains every
+    // walkable vertex, so this can never overlap real dry ground no matter how irregular the
+    // terrain shape is (unlike the old half-based square, which didn't account for terrain zones
+    // whose scaled extent pokes past the nominal half on one axis). The outer edge is pushed
+    // waterExtentMultiplier times the bounding box's footprint away, comfortably past the camera
+    // bounds (cameraBoundsSlack) so its own far edge is never visible.
+    private void BuildWaterBorder(GroundBounds bounds)
     {
         if (waterZonePrefab == null)
         {
@@ -215,18 +299,33 @@ public class LevelGenerator : MonoBehaviour
         Transform root = new GameObject("GeneratedWaterBorder").transform;
         root.SetParent(transform, false);
 
-        float outer = half + waterThickness;
-        float edgeCenter = half + waterThickness * 0.5f;
+        float innerMinX = bounds.minX - waterInnerGap;
+        float innerMaxX = bounds.maxX + waterInnerGap;
+        float innerMinZ = bounds.minZ - waterInnerGap;
+        float innerMaxZ = bounds.maxZ + waterInnerGap;
 
-        CreateWaterSegment(root, new Vector3(0f, 0f, edgeCenter), 0f, outer * 2f);
-        CreateWaterSegment(root, new Vector3(0f, 0f, -edgeCenter), 0f, outer * 2f);
-        CreateWaterSegment(root, new Vector3(edgeCenter, 0f, 0f), 90f, half * 2f);
-        CreateWaterSegment(root, new Vector3(-edgeCenter, 0f, 0f), 90f, half * 2f);
+        float centerX = (bounds.minX + bounds.maxX) * 0.5f;
+        float centerZ = (bounds.minZ + bounds.maxZ) * 0.5f;
+        float footprint = Mathf.Max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
+        float outerHalf = footprint * waterExtentMultiplier * 0.5f;
+
+        float outerMinX = centerX - outerHalf;
+        float outerMaxX = centerX + outerHalf;
+        float outerMinZ = centerZ - outerHalf;
+        float outerMaxZ = centerZ + outerHalf;
+
+        // North/south strips span the full outer width (covering the corners); east/west strips
+        // fill only the middle band between them, so the four segments tile without gaps or
+        // double-covered corners.
+        CreateWaterSegment(root, (outerMinX + outerMaxX) * 0.5f, (innerMaxZ + outerMaxZ) * 0.5f, outerMaxX - outerMinX, outerMaxZ - innerMaxZ);
+        CreateWaterSegment(root, (outerMinX + outerMaxX) * 0.5f, (outerMinZ + innerMinZ) * 0.5f, outerMaxX - outerMinX, innerMinZ - outerMinZ);
+        CreateWaterSegment(root, (innerMaxX + outerMaxX) * 0.5f, (innerMinZ + innerMaxZ) * 0.5f, outerMaxX - innerMaxX, innerMaxZ - innerMinZ);
+        CreateWaterSegment(root, (outerMinX + innerMinX) * 0.5f, (innerMinZ + innerMaxZ) * 0.5f, innerMinX - outerMinX, innerMaxZ - innerMinZ);
     }
 
-    private void CreateWaterSegment(Transform parent, Vector3 worldPos, float rotationY, float length)
+    private void CreateWaterSegment(Transform parent, float centerX, float centerZ, float sizeX, float sizeZ)
     {
-        GameObject segment = Instantiate(waterZonePrefab, worldPos, Quaternion.Euler(0f, rotationY, 0f), parent);
+        GameObject segment = Instantiate(waterZonePrefab, new Vector3(centerX, 0f, centerZ), Quaternion.identity, parent);
         segment.name = "WaterSegment";
 
         Transform groundWater = segment.transform.Find("Ground_Water");
@@ -242,7 +341,14 @@ public class LevelGenerator : MonoBehaviour
 
         groundWater.localPosition = new Vector3(0f, 0.2f, 0f);
         groundWater.localRotation = Quaternion.identity;
-        groundWater.localScale = new Vector3(length, 0.4f, waterThickness);
+        // Ground_Water's mesh is the default 10x10 Unity Plane (like every other Ground_*), so its
+        // localScale has to be in "mesh units" (divide by 10), not world units directly — otherwise
+        // the rendered/baked water strip ends up 10x too big in X/Z. This was a pre-existing bug:
+        // harmless before (the water mesh's VisualOnly layer wasn't in the NavMeshSurface's bake
+        // mask), but it silently added a huge extra walkable area once VisualOnly was included to
+        // pick up the real terrain-zone meshes, because Zone_Water's NavMeshModifierVolume below is
+        // sized correctly (world units) and only carved out the small, correctly-sized portion.
+        groundWater.localScale = new Vector3(sizeX / 10f, 0.4f, sizeZ / 10f);
 
         if (zoneWater == null)
             return;
@@ -254,12 +360,12 @@ public class LevelGenerator : MonoBehaviour
         NavMeshModifierVolume modifier = zoneWater.GetComponent<NavMeshModifierVolume>();
         if (modifier != null)
         {
-            modifier.size = new Vector3(length, 4f, waterThickness);
+            modifier.size = new Vector3(sizeX, 4f, sizeZ);
             modifier.center = Vector3.zero;
         }
     }
 
-    private void ShiftAndClamp(Transform[] targets, Vector3 delta, float outerHalf)
+    private void ShiftAndClamp(Transform[] targets, Vector3 delta, GroundBounds bounds)
     {
         if (targets == null)
             return;
@@ -269,68 +375,157 @@ public class LevelGenerator : MonoBehaviour
             if (t == null)
                 continue;
 
-            t.position = ClampToBounds(t.position + delta, outerHalf);
+            t.position = ClampToBounds(t.position + delta, bounds);
         }
     }
 
-    private Vector3 ClampToBounds(Vector3 pos, float outerHalf)
+    private Vector3 ClampToBounds(Vector3 pos, GroundBounds bounds)
     {
-        float limit = outerHalf - 1f;
-        pos.x = Mathf.Clamp(pos.x, -limit, limit);
-        pos.z = Mathf.Clamp(pos.z, -limit, limit);
+        pos.x = Mathf.Clamp(pos.x, bounds.minX + edgeMargin, bounds.maxX - edgeMargin);
+        pos.z = Mathf.Clamp(pos.z, bounds.minZ + edgeMargin, bounds.maxZ - edgeMargin);
         return pos;
     }
 
-    // Rejects points that don't sample onto the NavMesh at all (e.g. landing inside a building's
-    // carved-out footprint), and points that are too close to the water border specifically.
-    // Water is a known ring starting exactly at |x| or |z| > half (see BuildWaterBorder), so we
-    // measure clearance analytically against that boundary instead of NavMesh.FindClosestEdge —
-    // FindClosestEdge also fires on ordinary building/cover edges scattered across the interior,
-    // which made it reject the vast majority of the map and isn't what we're trying to avoid here.
-    // Shared by the player spawn and every enemy spawn so both use exactly the same rule.
-    private bool TryValidateSpawnPoint(Vector3 candidate, float half, out Vector3 validPosition)
+    // Builds the weighted-by-area triangle lookup once per generation and computes the real
+    // walkable NavMesh bounding box — both are reused by every spawn/placement/camera-bounds call
+    // below instead of re-triangulating per point. Must run after the NavMesh has been (re)baked.
+    private void CacheTriangulation()
     {
-        if (NavMesh.SamplePosition(candidate, out NavMeshHit sample, 3f, NavMesh.AllAreas))
-        {
-            float distanceToWaterBoundary = half - Mathf.Max(Mathf.Abs(sample.position.x), Mathf.Abs(sample.position.z));
+        cachedTriangulation = NavMesh.CalculateTriangulation();
+        int triCount = cachedTriangulation.indices.Length / 3;
+        cachedCumulativeTriangleAreas = new float[triCount];
 
-            if (distanceToWaterBoundary >= spawnWaterClearance)
-            {
-                validPosition = sample.position;
-                return true;
-            }
+        float running = 0f;
+        for (int i = 0; i < triCount; i++)
+        {
+            Vector3 a = cachedTriangulation.vertices[cachedTriangulation.indices[i * 3]];
+            Vector3 b = cachedTriangulation.vertices[cachedTriangulation.indices[i * 3 + 1]];
+            Vector3 c = cachedTriangulation.vertices[cachedTriangulation.indices[i * 3 + 2]];
+            running += Vector3.Cross(b - a, c - a).magnitude * 0.5f;
+            cachedCumulativeTriangleAreas[i] = running;
         }
 
-        validPosition = default;
+        cachedTotalWalkableArea = running;
+    }
+
+    private GroundBounds ComputeGroundBounds()
+    {
+        GroundBounds bounds = new GroundBounds
+        {
+            minX = float.MaxValue,
+            maxX = float.MinValue,
+            minZ = float.MaxValue,
+            maxZ = float.MinValue,
+        };
+
+        foreach (Vector3 v in cachedTriangulation.vertices)
+        {
+            if (v.x < bounds.minX) bounds.minX = v.x;
+            if (v.x > bounds.maxX) bounds.maxX = v.x;
+            if (v.z < bounds.minZ) bounds.minZ = v.z;
+            if (v.z > bounds.maxZ) bounds.maxZ = v.z;
+        }
+
+        return bounds;
+    }
+
+    private int ComputeEnemyCount(MapSizeSettings settings)
+    {
+        int raw = Mathf.RoundToInt(cachedTotalWalkableArea / navMeshAreaPerEnemy);
+        return Mathf.Clamp(raw, settings.minEnemies, settings.maxEnemies);
+    }
+
+    // Picks a uniformly-random point on the real baked walkable surface: a triangle is chosen with
+    // probability proportional to its area (so large open patches aren't under-represented relative
+    // to tiny sliver triangles), then a random barycentric point is taken inside it. This can only
+    // ever land exactly on real ground — there is no square/half math involved.
+    private Vector3 RandomPointOnNavMesh()
+    {
+        float target = Random.value * cachedTotalWalkableArea;
+
+        int lo = 0, hi = cachedCumulativeTriangleAreas.Length - 1;
+        while (lo < hi)
+        {
+            int mid = (lo + hi) / 2;
+            if (cachedCumulativeTriangleAreas[mid] < target)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+
+        int triIndex = lo;
+        Vector3 a = cachedTriangulation.vertices[cachedTriangulation.indices[triIndex * 3]];
+        Vector3 b = cachedTriangulation.vertices[cachedTriangulation.indices[triIndex * 3 + 1]];
+        Vector3 c = cachedTriangulation.vertices[cachedTriangulation.indices[triIndex * 3 + 2]];
+
+        float r1 = Random.value;
+        float r2 = Random.value;
+        if (r1 + r2 > 1f)
+        {
+            r1 = 1f - r1;
+            r2 = 1f - r2;
+        }
+
+        return a + r1 * (b - a) + r2 * (c - a);
+    }
+
+    // Mandatory final check on top of RandomPointOnNavMesh(): a point picked from the raw
+    // triangulation can still land inside a carved-out hole (e.g. a building footprint) that the
+    // triangulation itself doesn't represent as a gap at triangle-corner resolution. SamplePosition
+    // with a small maxDistance catches that — if it still misses, the point is rejected outright
+    // rather than snapped somewhere unrelated.
+    private bool TryGetRandomGroundPoint(out Vector3 result)
+    {
+        Vector3 candidate = RandomPointOnNavMesh();
+
+        if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, groundSampleMaxDistance, NavMesh.AllAreas))
+        {
+            result = hit.position;
+            return true;
+        }
+
+        result = default;
         return false;
     }
 
-    // Requires the NavMesh to already be baked and registered (see Generate()).
-    private Vector3 FindValidPlayerSpawn(float half, float y)
+    // Requires the NavMesh to already be baked and registered (see Generate()). Tries the
+    // hand-picked "back edge, facing forward" spot first (for a consistent intro-cutscene framing),
+    // and only falls back to a uniformly-random ground point if that specific spot doesn't happen
+    // to land on real ground for this map's shape.
+    private Vector3 FindValidPlayerSpawn(GroundBounds bounds, float y)
     {
-        float limit = half - edgeMargin;
-        Vector3 preferred = new Vector3(0f, y, -(half - playerSpawnEdgeInset));
+        float centerX = (bounds.minX + bounds.maxX) * 0.5f;
+        Vector3 preferred = new Vector3(centerX, y, bounds.minZ + playerSpawnEdgeInset);
+        if (NavMesh.SamplePosition(preferred, out NavMeshHit preferredHit, 3f, NavMesh.AllAreas))
+            return preferredHit.position;
 
         for (int attempt = 0; attempt < playerSpawnMaxAttempts; attempt++)
         {
-            Vector3 candidate = attempt == 0
-                ? preferred
-                : new Vector3(Random.Range(-limit, limit), y, Random.Range(-limit, limit));
-
-            if (TryValidateSpawnPoint(candidate, half, out Vector3 validPosition))
-                return validPosition;
+            if (TryGetRandomGroundPoint(out Vector3 candidate))
+                return new Vector3(candidate.x, y, candidate.z);
         }
 
         Debug.LogWarning($"[LevelGenerator] Не удалось найти валидную точку спавна игрока за {playerSpawnMaxAttempts} попыток — использую центр карты как запасной вариант.");
 
-        Vector3 center = new Vector3(0f, y, 0f);
+        Vector3 center = new Vector3(centerX, y, (bounds.minZ + bounds.maxZ) * 0.5f);
         if (NavMesh.SamplePosition(center, out NavMeshHit fallback, 10f, NavMesh.AllAreas))
             return fallback.position;
 
         return center;
     }
 
-    private void PlaceDeadMechs(Vector3 pathStart, Vector3 pathEnd, float outerHalf)
+    private Vector3 FindIntroDestination(Vector3 playerPos, GroundBounds bounds)
+    {
+        float destinationZ = Mathf.Min(playerPos.z + introForwardDistance, bounds.maxZ - edgeMargin);
+        Vector3 desired = new Vector3(0f, playerPos.y, destinationZ);
+
+        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            return hit.position;
+
+        return TryGetRandomGroundPoint(out Vector3 fallback) ? new Vector3(fallback.x, playerPos.y, fallback.z) : playerPos;
+    }
+
+    private void PlaceDeadMechs(Vector3 pathStart, Vector3 pathEnd, GroundBounds bounds)
     {
         if (deadMechWrecks == null)
             return;
@@ -352,7 +547,10 @@ public class LevelGenerator : MonoBehaviour
             float t = (i + 1f) / (count + 1f);
             Vector3 basePos = Vector3.Lerp(pathStart, pathEnd, t);
             Vector3 offset = lateral * Random.Range(-deadMechLateralJitter, deadMechLateralJitter);
-            Vector3 newPos = ClampToBounds(basePos + offset, outerHalf);
+            Vector3 newPos = ClampToBounds(basePos + offset, bounds);
+
+            if (NavMesh.SamplePosition(newPos, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+                newPos = hit.position;
 
             wreck.position = new Vector3(newPos.x, wreck.position.y, newPos.z);
         }
@@ -369,10 +567,9 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
-    private List<Vector3> GenerateEnemyPositions(int count, float half, Vector3 playerPos)
+    private List<Vector3> GenerateEnemyPositions(int count, Vector3 playerPos)
     {
         List<Vector3> result = new List<Vector3>(count);
-        float limit = half - edgeMargin;
 
         for (int i = 0; i < count; i++)
         {
@@ -380,33 +577,30 @@ public class LevelGenerator : MonoBehaviour
 
             for (int attempt = 0; attempt < enemySpawnMaxAttempts && !placed; attempt++)
             {
-                Vector3 candidate = new Vector3(
-                    Random.Range(-limit, limit),
-                    playerPos.y,
-                    Random.Range(-limit, limit));
-
-                if (!TryValidateSpawnPoint(candidate, half, out Vector3 validPosition))
+                if (!TryGetRandomGroundPoint(out Vector3 candidate))
                     continue;
 
-                if (Vector3.Distance(validPosition, playerPos) < enemyMinDistanceFromPlayer)
+                candidate.y = playerPos.y;
+
+                if (Vector3.Distance(candidate, playerPos) < enemyMinDistanceFromPlayer)
                     continue;
 
-                if (TooCloseToAny(validPosition, result, enemyMinDistanceFromOthers))
+                if (TooCloseToAny(candidate, result, enemyMinDistanceFromOthers))
                     continue;
 
-                result.Add(validPosition);
+                result.Add(candidate);
                 placed = true;
             }
 
             if (!placed)
             {
-                Debug.LogWarning($"[LevelGenerator] Не удалось найти валидную точку спавна врага #{i} за {enemySpawnMaxAttempts} попыток — использую последнюю попавшуюся позицию без полной проверки.");
+                Debug.LogWarning($"[LevelGenerator] Не удалось найти валидную точку спавна врага #{i} за {enemySpawnMaxAttempts} попыток — использую последнюю попавшуюся точку на земле без полной проверки дистанций.");
 
-                Vector3 fallback = new Vector3(Random.Range(-limit, limit), playerPos.y, Random.Range(-limit, limit));
-                if (TryValidateSpawnPoint(fallback, half, out Vector3 validFallback))
-                    fallback = validFallback;
-
-                result.Add(fallback);
+                if (TryGetRandomGroundPoint(out Vector3 fallback))
+                {
+                    fallback.y = playerPos.y;
+                    result.Add(fallback);
+                }
             }
         }
 
@@ -465,7 +659,7 @@ public class LevelGenerator : MonoBehaviour
             enemySilhouetteIntro.rotation = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
     }
 
-    private void PlaceHealthPickup(float half, Vector3 playerPos, List<Vector3> avoidPoints)
+    private void PlaceHealthPickup(Vector3 playerPos, List<Vector3> avoidPoints)
     {
         if (healthPickupPrefab == null)
             return;
@@ -479,30 +673,66 @@ public class LevelGenerator : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            Vector3 pos = FindValidPoint(half, playerPos, avoidPoints, pickupMinDistanceFromOthers);
+            Vector3 pos = FindValidPoint(playerPos, avoidPoints, pickupMinDistanceFromOthers);
             Instantiate(healthPickupPrefab, pos, Quaternion.identity);
             avoidPoints.Add(pos);
         }
     }
 
-    private void PlaceRepairZone(float half, Vector3 playerPos)
+    private void PlaceRepairZone(Vector3 playerPos)
     {
         if (repairZonePrefab == null)
             return;
 
-        Vector3 pos = ClampToBounds(playerPos + Vector3.forward * repairZoneForwardOffset, half);
+        Vector3 desired = playerPos + Vector3.forward * repairZoneForwardOffset;
+        Vector3 pos;
+
+        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+        {
+            pos = hit.position;
+        }
+        else if (!TryGetRandomGroundPoint(out pos))
+        {
+            pos = playerPos;
+        }
+
         Instantiate(repairZonePrefab, pos, Quaternion.identity);
     }
 
-    private void PlaceExtractionZone(float half, Vector3 playerPos)
+    private void PlaceExtractionZone(GroundBounds bounds, Vector3 playerPos)
     {
         if (extractionZonePrefab == null)
             return;
 
-        Vector3 pos = new Vector3(0f, playerPos.y, half - edgeMargin);
+        float centerX = (bounds.minX + bounds.maxX) * 0.5f;
+        Vector3 desired = new Vector3(centerX, playerPos.y, bounds.maxZ - edgeMargin);
+        Vector3 pos;
+
+        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, 8f, NavMesh.AllAreas))
+        {
+            pos = hit.position;
+        }
+        else
+        {
+            // Fall back to the farthest real ground point from the player — covers oddly-shaped
+            // maps where the analytic "north edge" doesn't happen to sit on any walkable triangle.
+            pos = playerPos;
+            float bestDist = -1f;
+            foreach (Vector3 v in cachedTriangulation.vertices)
+            {
+                float d = Vector3.Distance(v, playerPos);
+                if (d > bestDist)
+                {
+                    bestDist = d;
+                    pos = new Vector3(v.x, playerPos.y, v.z);
+                }
+            }
+        }
+
         GameObject zone = Instantiate(extractionZonePrefab, pos, Quaternion.identity);
 
-        float scaleX = Mathf.Clamp(half * 0.5f, 4f, 10f);
+        float boundsSpan = Mathf.Min(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
+        float scaleX = Mathf.Clamp(boundsSpan * 0.25f, 4f, 10f);
         Vector3 scale = zone.transform.localScale;
         zone.transform.localScale = new Vector3(scaleX, scale.y, scale.z);
 
@@ -511,18 +741,25 @@ public class LevelGenerator : MonoBehaviour
             extractionZone.SetMissionController(missionController);
     }
 
-    private Vector3 FindValidPoint(float half, Vector3 playerPos, List<Vector3> avoidPoints, float minDistance)
+    private Vector3 FindValidPoint(Vector3 playerPos, List<Vector3> avoidPoints, float minDistance)
     {
-        float limit = half - edgeMargin;
-
         for (int attempt = 0; attempt < 500; attempt++)
         {
-            Vector3 candidate = new Vector3(Random.Range(-limit, limit), playerPos.y, Random.Range(-limit, limit));
+            if (!TryGetRandomGroundPoint(out Vector3 candidate))
+                continue;
+
+            candidate.y = playerPos.y;
 
             if (!TooCloseToAny(candidate, avoidPoints, minDistance))
                 return candidate;
         }
 
-        return new Vector3(Random.Range(-limit, limit), playerPos.y, Random.Range(-limit, limit));
+        if (TryGetRandomGroundPoint(out Vector3 fallback))
+        {
+            fallback.y = playerPos.y;
+            return fallback;
+        }
+
+        return playerPos;
     }
 }

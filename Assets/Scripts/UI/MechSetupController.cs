@@ -168,7 +168,7 @@ public class MechSetupController : MonoBehaviour
             currentWeaponType = WeaponType.Energy;
             currentFireMode = WeaponFireMode.AlphaStrike;
             currentStance = UnitStance.Defensive;
-            currentMapSize = null;
+            currentMapSize = MapSize.Medium;
         }
 
         ApplyModelSelection();

@@ -12,8 +12,12 @@ public class MechLoadoutData : MonoBehaviour
     public UnitStance SelectedStance = UnitStance.Defensive;
 
     [Header("Mission")]
-    // Null = random map size (default). Set from the MechSetup screen to force a specific size.
-    public MapSize? SelectedMapSize = null;
+    // Defaults to Medium so a fresh MechLoadoutData always has a real, displayable selection (see
+    // MechSetupController's map-size button highlight). Null is still a valid value elsewhere —
+    // LevelGenerator treats a null SelectedMapSize (or no MechLoadoutData instance at all, e.g.
+    // launching the gameplay scene directly) as "pick a random size" — this default just ensures
+    // that state is never the unintentional starting point from the MechSetup screen.
+    public MapSize? SelectedMapSize = MapSize.Medium;
 
     [Header("Ads bonus")]
     // Granted by watching a rewarded ad on the MechSetup screen. Consumed (reset to false) by
