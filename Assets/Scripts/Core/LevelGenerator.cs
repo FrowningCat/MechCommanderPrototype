@@ -470,8 +470,19 @@ public class LevelGenerator : MonoBehaviour
         if (healthPickupPrefab == null)
             return;
 
-        Vector3 pos = FindValidPoint(half, playerPos, avoidPoints, pickupMinDistanceFromOthers);
-        Instantiate(healthPickupPrefab, pos, Quaternion.identity);
+        int count = 1;
+        if (MechLoadoutData.Instance != null && MechLoadoutData.Instance.BonusHealthPickup)
+        {
+            count = 2;
+            MechLoadoutData.Instance.BonusHealthPickup = false;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 pos = FindValidPoint(half, playerPos, avoidPoints, pickupMinDistanceFromOthers);
+            Instantiate(healthPickupPrefab, pos, Quaternion.identity);
+            avoidPoints.Add(pos);
+        }
     }
 
     private void PlaceRepairZone(float half, Vector3 playerPos)

@@ -52,12 +52,12 @@ public class MissionResultUI : MonoBehaviour
 
     public void OnMainMenuClicked()
     {
-        SceneManager.LoadScene(mainMenuSceneName);
+        AdsManager.Instance.ShowInterstitial(() => SceneManager.LoadScene(mainMenuSceneName));
     }
 
     public void OnRestartClicked()
     {
-        Scene currentScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(currentScene.name);
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        AdsManager.Instance.ShowInterstitial(() => SceneManager.LoadScene(currentSceneName));
     }
 }

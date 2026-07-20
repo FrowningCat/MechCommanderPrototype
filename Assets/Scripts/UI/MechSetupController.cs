@@ -37,6 +37,7 @@ public class MechSetupController : MonoBehaviour
     private Button[] fireModeButtons;
     private Button[] stanceButtons;
     private Button[] mapSizeButtons;
+    private Button adBonusButton;
 
     private Text modelNameText;
     private Text statsText;
@@ -133,6 +134,10 @@ public class MechSetupController : MonoBehaviour
 
         BindClick("Btn_Start", StartMission);
         BindClick("Btn_Back", BackToMainMenu);
+
+        adBonusButton = FindButton("Btn_AdBonus");
+        if (adBonusButton != null)
+            adBonusButton.onClick.AddListener(OnAdBonusClicked);
 
         InitializeFromExistingLoadout();
     }
@@ -318,6 +323,25 @@ public class MechSetupController : MonoBehaviour
     private void BackToMainMenu()
     {
         SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    private void OnAdBonusClicked()
+    {
+        AdsManager.Instance.ShowRewarded(
+            onRewardGranted: () =>
+            {
+                if (MechLoadoutData.Instance == null)
+                {
+                    GameObject loadoutObject = new GameObject("MechLoadoutData");
+                    loadoutObject.AddComponent<MechLoadoutData>();
+                }
+
+                MechLoadoutData.Instance.BonusHealthPickup = true;
+
+                if (adBonusButton != null)
+                    adBonusButton.interactable = false;
+            },
+            onClosedWithoutReward: null);
     }
 
     private static Button FindButton(string name)
