@@ -47,6 +47,29 @@ public class MechLoadoutApplier : MonoBehaviour
         MechCombat combat = GetComponent<MechCombat>();
         if (combat != null)
             combat.SetStance(loadout.SelectedStance);
+
+        ApplyRunUpgrades(loadout);
+    }
+
+    // Applies the player's cumulative Stage 33 run upgrades (see MechLoadoutData.RunHealthMultiplier
+    // etc. and LevelUpgradeUI) on top of the base model stats set by ApplyModelStats — never
+    // touches WeaponBalance or the prefab's own serialized values.
+    private void ApplyRunUpgrades(MechLoadoutData loadout)
+    {
+        Health health = GetComponent<Health>();
+        if (health != null)
+        {
+            int scaledMaxHealth = Mathf.RoundToInt(health.MaxHealth * loadout.RunHealthMultiplier);
+            int scaledArmor = Mathf.RoundToInt(health.ArmorValue * loadout.RunArmorMultiplier);
+            health.ConfigureStats(scaledMaxHealth, scaledArmor);
+        }
+
+        foreach (Weapon weapon in GetComponentsInChildren<Weapon>())
+            weapon.SetDamageMultiplier(loadout.RunDamageMultiplier);
+
+        MechWeaponSystem weaponSystem = GetComponent<MechWeaponSystem>();
+        if (weaponSystem != null)
+            weaponSystem.SetFireRateMultiplier(loadout.RunFireRateMultiplier);
     }
 
     // Lets other systems (e.g. the MechSetup stats panel) read a model's real archetype numbers

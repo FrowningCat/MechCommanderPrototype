@@ -25,21 +25,32 @@ public class Weapon : MonoBehaviour
     private float lastAttackTime = -999f;
     private Animator animator;
 
+    // Per-instance scaling on top of WeaponBalance's type/mode multipliers — used by
+    // EnemyLevelScaler (run-level enemy scaling) and MechLoadoutApplier (player run upgrades).
+    // Defaults to 1 (no-op) so nothing changes unless one of those explicitly sets it.
+    private float damageMultiplier = 1f;
+
     public WeaponType WeaponType => weaponType;
 
     public void SetWeaponType(WeaponType newWeaponType)
     {
         weaponType = newWeaponType;
     }
+
+    public void SetDamageMultiplier(float multiplier)
+    {
+        damageMultiplier = Mathf.Max(0f, multiplier);
+    }
+
     public int Damage => damage;
     public float Range => range;
     public float Cooldown => cooldown;
     public float HeatPerShot => heatPerShot;
 
-    // Base damage modified by the weapon type multiplier (see WeaponBalance) — the real number
-    // that gets dealt on hit. Whoever needs to show or apply "the damage" should use this, not
-    // the raw Damage field, so combat and UI never disagree.
-    public int EffectiveDamage => WeaponBalance.ComputeEffectiveDamage(damage, weaponType);
+    // Base damage modified by the weapon type multiplier (see WeaponBalance) and this instance's
+    // damageMultiplier — the real number that gets dealt on hit. Whoever needs to show or apply
+    // "the damage" should use this, not the raw Damage field, so combat and UI never disagree.
+    public int EffectiveDamage => Mathf.RoundToInt(WeaponBalance.ComputeEffectiveDamage(damage, weaponType) * damageMultiplier);
 
     private void Awake()
     {

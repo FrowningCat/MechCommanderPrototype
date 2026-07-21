@@ -310,6 +310,7 @@ public class MechSetupController : MonoBehaviour
         }
 
         MechLoadoutData loadout = MechLoadoutData.Instance;
+        loadout.ResetRun();
         loadout.SelectedModelIndex = currentModelIndex;
         loadout.SelectedColor = currentColor;
         loadout.SelectedWeaponType = currentWeaponType;

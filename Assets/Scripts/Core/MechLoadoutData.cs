@@ -24,6 +24,33 @@ public class MechLoadoutData : MonoBehaviour
     // LevelGenerator once the extra pickup has been spawned.
     public bool BonusHealthPickup = false;
 
+    [Header("Run Progression (Stage 33)")]
+    // Level number within the current run-based campaign. Starts at 1 when a new mission is
+    // launched from MechSetup, incremented by one on every LevelUpgradeUI pick after a Victory.
+    // EnemyLevelScaler reads this to scale freshly spawned enemies (see RunProgression).
+    public int CurrentRunLevel = 1;
+
+    // Cumulative multipliers from LevelUpgradeUI picks, applied on top of MechLoadoutApplier's
+    // base ModelStats/Weapon values every time the gameplay scene loads. 1 = no bonus yet. Kept
+    // here (not on WeaponBalance, which is about weapon type/mode, not level growth, and not on
+    // prefab base values) so a run's progress survives the scene reload between levels the same
+    // way the rest of the loadout does.
+    public float RunHealthMultiplier = 1f;
+    public float RunArmorMultiplier = 1f;
+    public float RunDamageMultiplier = 1f;
+    public float RunFireRateMultiplier = 1f; // >1 = faster (shorter weapon cooldown)
+
+    // Called when a fresh run starts (MechSetupController.StartMission) and when a run ends in
+    // defeat (MissionResultUI) — both are explicit "the run is over" boundaries.
+    public void ResetRun()
+    {
+        CurrentRunLevel = 1;
+        RunHealthMultiplier = 1f;
+        RunArmorMultiplier = 1f;
+        RunDamageMultiplier = 1f;
+        RunFireRateMultiplier = 1f;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

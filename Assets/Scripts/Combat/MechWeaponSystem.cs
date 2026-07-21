@@ -13,12 +13,22 @@ public class MechWeaponSystem : MonoBehaviour
 
     private int chainFireIndex;
 
+    // Per-instance fire-rate multiplier — used by MechLoadoutApplier to apply the player's
+    // accumulated run fire-rate upgrades. Defaults to 1 (no-op); enemies never set this, so
+    // Stage 33's enemy scaling (Health/damage only) leaves their fire rate untouched.
+    private float fireRateMultiplier = 1f;
+
     public bool HasWeapons => weapons != null && weapons.Length > 0;
     public WeaponFireMode FireMode => fireMode;
 
     public void SetFireMode(WeaponFireMode newFireMode)
     {
         fireMode = newFireMode;
+    }
+
+    public void SetFireRateMultiplier(float multiplier)
+    {
+        fireRateMultiplier = Mathf.Clamp(multiplier, 0.2f, 5f);
     }
 
     public float EffectiveRange
@@ -95,7 +105,7 @@ public class MechWeaponSystem : MonoBehaviour
 
     private bool TryFireWeapon(Weapon weapon, ITargetable target)
     {
-        float cooldownMultiplier = WeaponBalance.GetCooldownMultiplier(fireMode);
+        float cooldownMultiplier = WeaponBalance.GetCooldownMultiplier(fireMode) / fireRateMultiplier;
 
         if (!weapon.CanAttack(target, cooldownMultiplier))
             return false;

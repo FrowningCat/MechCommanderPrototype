@@ -25,6 +25,7 @@ public class UnitSpawner : MonoBehaviour
 
     private void SpawnAtPoint(SpawnPoint point)
     {
+        bool isEnemy = point.Type != SpawnPointType.Player;
         GameObject prefab = point.Type == SpawnPointType.Player ? playerUnitPrefab : PickRandomEnemyPrefab();
 
         if (prefab == null)
@@ -33,7 +34,10 @@ public class UnitSpawner : MonoBehaviour
             return;
         }
 
-        Instantiate(prefab, point.transform.position, point.transform.rotation);
+        GameObject spawned = Instantiate(prefab, point.transform.position, point.transform.rotation);
+
+        if (isEnemy)
+            EnemyLevelScaler.ApplyRunLevelScaling(spawned);
     }
 
     private GameObject PickRandomEnemyPrefab()

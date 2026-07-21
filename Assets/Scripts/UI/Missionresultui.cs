@@ -37,6 +37,15 @@ public class MissionResultUI : MonoBehaviour
 
     private void HandleMissionEnded(MissionState state)
     {
+        // Mid-run victory: LevelUpgradeUI takes over (upgrade pick, then straight to the next
+        // level) instead of the MainMenu/Restart panel below. Falls through to the normal panel
+        // if there's no MechLoadoutData (e.g. the gameplay scene launched directly, with no run).
+        if (state == MissionState.Victory && MechLoadoutData.Instance != null)
+            return;
+
+        if (state == MissionState.Defeat && MechLoadoutData.Instance != null)
+            MechLoadoutData.Instance.ResetRun();
+
         if (resultPanel != null)
             resultPanel.SetActive(true);
 
