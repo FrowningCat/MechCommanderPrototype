@@ -2,16 +2,17 @@ using UnityEngine;
 
 // Scales a freshly spawned enemy's Health and weapon damage to the current run level (see
 // RunProgression). Runs once per spawn, right after Instantiate — prefab-authored base values on
-// Health/Weapon are never touched, only the live instance is adjusted.
+// Health/Weapon are never touched, only the live instance is adjusted. extraMultiplier stacks on
+// top of the usual per-level multiplier (Stage 35: bosses use it for their +30% bonus).
 public static class EnemyLevelScaler
 {
-    public static void ApplyRunLevelScaling(GameObject enemyInstance)
+    public static void ApplyRunLevelScaling(GameObject enemyInstance, float extraMultiplier = 1f)
     {
         if (enemyInstance == null)
             return;
 
         int runLevel = MechLoadoutData.Instance != null ? MechLoadoutData.Instance.CurrentRunLevel : 1;
-        float multiplier = RunProgression.GetEnemyStatMultiplier(runLevel);
+        float multiplier = RunProgression.GetEnemyStatMultiplier(runLevel) * extraMultiplier;
 
         if (Mathf.Approximately(multiplier, 1f))
             return;

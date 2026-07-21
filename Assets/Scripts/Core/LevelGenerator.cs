@@ -52,6 +52,21 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private GameObject repairZonePrefab;
     [SerializeField] private GameObject extractionZonePrefab;
 
+    [Header("Boss levels (Stage 35)")]
+    [Tooltip("Every Nth run level (3, 6, 9, ...) spawns a single boss instead of the normal enemy roster.")]
+    [SerializeField] private int bossLevelInterval = 3;
+    [Tooltip("Visual/stat base for the boss — Enemy_Variant2 (Mike) chosen because it's already the tankiest roster entry (highest base HP/armor, slowest), matching a boss archetype better than a bigger-but-squishier variant; see Stage 35 report.")]
+    [SerializeField] private GameObject bossEnemyPrefab;
+    [Tooltip("Extra multiplier stacked on top of EnemyLevelScaler's usual per-level scaling for the boss only (e.g. 1.3 = +30%).")]
+    [SerializeField] private float bossExtraStatMultiplier = 1.3f;
+    [Tooltip("Uniform scale multiplier applied to the boss instance's transform so it visually reads as bigger than a normal enemy.")]
+    [SerializeField] private float bossVisualScale = 1.4f;
+
+    [Header("Level objective UI (Stage 35)")]
+    [Tooltip("Shown briefly at level start with the win condition (defeat all enemies / reach extraction).")]
+    [SerializeField] private TMPro.TMP_Text levelObjectiveText;
+    [SerializeField] private float levelObjectiveDisplayDuration = 4f;
+
     [Header("Legacy decorative zones (repositioned/rescaled to match the generated area)")]
     [SerializeField] private GameObject[] legacyGroundZones;
     [Tooltip("The areaSize the legacyGroundZones' authored positions/scales were hand-placed for (currently the Large preset, 100). Every zone is uniformly scaled from the world origin by (current areaSize / this value), so the same hand-authored road/mud/rocks layout grows or shrinks with the generated map instead of clipping or leaving gaps.")]
@@ -164,7 +179,10 @@ public class LevelGenerator : MonoBehaviour
         ResizeAndPlaceGround(groundBounds);
         BuildWaterBorder(groundBounds);
 
-        int enemyCount = ComputeEnemyCount(settings);
+        int runLevel = MechLoadoutData.Instance != null ? MechLoadoutData.Instance.CurrentRunLevel : 1;
+        bool isBossLevel = bossLevelInterval > 0 && runLevel % bossLevelInterval == 0;
+
+        int enemyCount = isBossLevel ? 1 : ComputeEnemyCount(settings);
 
         Vector3 oldPlayerPos = playerMech != null ? playerMech.position : Vector3.zero;
         Vector3 newPlayerPos = FindValidPlayerSpawn(groundBounds, oldPlayerPos.y);
@@ -192,13 +210,24 @@ public class LevelGenerator : MonoBehaviour
             rtsCameraController.FocusOnPoint(newPlayerPos);
         }
 
-        bool winOnAllEnemiesDefeated = Random.value < 0.5f;
+        // Boss levels (Stage 35): always "defeat all enemies" — an ExtractionZone win condition
+        // would let the player walk past the boss entirely, which defeats the point of a boss level.
+        bool winOnAllEnemiesDefeated = isBossLevel || Random.value < 0.5f;
         GeneratedWinOnAllEnemiesDefeated = winOnAllEnemiesDefeated;
 
         Vector3 introDestination = FindIntroDestination(newPlayerPos, groundBounds);
 
+        // Stage 35: the briefing cutscene only plays on the run's first level. Disabling the
+        // component here — before its own Start() ever runs (LevelGenerator's DefaultExecutionOrder
+        // guarantees that) — skips it entirely rather than just fast-forwarding it, so level 2+
+        // never pauses input/camera/combat for it at all.
         if (introCutsceneController != null)
-            introCutsceneController.SetIntroDestination(introDestination);
+        {
+            if (runLevel <= 1)
+                introCutsceneController.SetIntroDestination(introDestination);
+            else
+                introCutsceneController.enabled = false;
+        }
 
         PlaceDeadMechs(newPlayerPos, introDestination, groundBounds);
 
@@ -210,24 +239,84 @@ public class LevelGenerator : MonoBehaviour
 
         CleanupOldEnemySpawnPoints();
         List<Vector3> enemyPositions = GenerateEnemyPositions(enemyCount, newPlayerPos);
-        CreateEnemySpawnPoints(enemyPositions);
 
-        if (unitSpawner != null)
-            unitSpawner.SpawnAll();
+        if (isBossLevel)
+        {
+            SpawnBoss(enemyPositions.Count > 0 ? enemyPositions[0] : newPlayerPos);
+        }
+        else
+        {
+            CreateEnemySpawnPoints(enemyPositions);
+
+            if (unitSpawner != null)
+                unitSpawner.SpawnAll();
+        }
 
         PlaceEnemySilhouette(newPlayerPos, enemyPositions);
 
         List<Vector3> occupiedPoints = new List<Vector3>(enemyPositions) { newPlayerPos };
-        PlaceHealthPickup(newPlayerPos, occupiedPoints, enemyCount);
 
-        if (enemyCount > enemiesRequiredForRepairZone)
-            PlaceRepairZone(newPlayerPos);
+        // Boss levels (Stage 35): exactly one HealthPickup on the map, no RepairZone, regardless
+        // of the Stage 34 enemy-count-based pickup rules below (those only apply on normal levels).
+        if (isBossLevel)
+        {
+            PlaceHealthPickup(newPlayerPos, occupiedPoints, enemyCount, forceSingle: true);
+        }
+        else
+        {
+            PlaceHealthPickup(newPlayerPos, occupiedPoints, enemyCount);
+
+            if (enemyCount > enemiesRequiredForRepairZone)
+                PlaceRepairZone(newPlayerPos);
+        }
 
         if (!winOnAllEnemiesDefeated)
             PlaceExtractionZone(groundBounds, newPlayerPos);
 
         if (missionController != null)
             missionController.SetWinCondition(winOnAllEnemiesDefeated);
+
+        ShowLevelObjective(winOnAllEnemiesDefeated);
+    }
+
+    // Boss stats = the normal enemy stat multiplier for this run level (EnemyLevelScaler's usual
+    // +10%/level) plus bossExtraStatMultiplier on top, per Stage 35. bossEnemyPrefab is spawned
+    // directly here instead of through UnitSpawner/SpawnPoint, since that pipeline has no concept
+    // of "exactly one specific prefab" — it always picks randomly from enemyUnitPrefabs.
+    private void SpawnBoss(Vector3 position)
+    {
+        if (bossEnemyPrefab == null)
+        {
+            Debug.LogWarning("[LevelGenerator] bossEnemyPrefab не назначен — босс не заспавнен.");
+            return;
+        }
+
+        GameObject boss = Instantiate(bossEnemyPrefab, position, Quaternion.identity);
+        boss.transform.localScale *= bossVisualScale;
+        EnemyLevelScaler.ApplyRunLevelScaling(boss, bossExtraStatMultiplier);
+    }
+
+    // Stage 35: briefly surfaces the win condition LevelGenerator already decided above (Stage 29)
+    // so the player knows the objective at level start, instead of only ever seeing it implicitly.
+    private void ShowLevelObjective(bool winOnAllEnemiesDefeated)
+    {
+        if (levelObjectiveText == null)
+            return;
+
+        levelObjectiveText.text = winOnAllEnemiesDefeated
+            ? "Цель: уничтожить всех противников"
+            : "Цель: дойти до точки эвакуации";
+
+        levelObjectiveText.gameObject.SetActive(true);
+        StartCoroutine(HideLevelObjectiveAfterDelay());
+    }
+
+    private System.Collections.IEnumerator HideLevelObjectiveAfterDelay()
+    {
+        yield return new WaitForSeconds(levelObjectiveDisplayDuration);
+
+        if (levelObjectiveText != null)
+            levelObjectiveText.gameObject.SetActive(false);
     }
 
     private MapSizeSettings ResolveMapSize(out MapSize mapSize)
@@ -742,17 +831,32 @@ public class LevelGenerator : MonoBehaviour
     // enemies. 1-2 enemies keep the original single HealthPickup. The run-upgrade bonus pickup
     // (MechLoadoutData.BonusHealthPickup) still adds one on top of whatever this rule produces,
     // including the 0 case, so that upgrade always delivers something.
-    private void PlaceHealthPickup(Vector3 playerPos, List<Vector3> avoidPoints, int enemyCount)
+    private void PlaceHealthPickup(Vector3 playerPos, List<Vector3> avoidPoints, int enemyCount, bool forceSingle = false)
     {
         if (healthPickupPrefab == null)
             return;
 
-        int count = enemyCount == enemiesRequiredForRepairZone ? 2 : (enemyCount > enemiesRequiredForRepairZone ? 0 : 1);
+        int count;
 
-        if (MechLoadoutData.Instance != null && MechLoadoutData.Instance.BonusHealthPickup)
+        if (forceSingle)
         {
-            count += 1;
-            MechLoadoutData.Instance.BonusHealthPickup = false;
+            // Boss levels (Stage 35): exactly 1 HealthPickup, no exceptions — even a pending ad
+            // bonus is consumed here rather than stacking a 2nd pickup, since the level is only
+            // supposed to have the one.
+            count = 1;
+
+            if (MechLoadoutData.Instance != null)
+                MechLoadoutData.Instance.BonusHealthPickup = false;
+        }
+        else
+        {
+            count = enemyCount == enemiesRequiredForRepairZone ? 2 : (enemyCount > enemiesRequiredForRepairZone ? 0 : 1);
+
+            if (MechLoadoutData.Instance != null && MechLoadoutData.Instance.BonusHealthPickup)
+            {
+                count += 1;
+                MechLoadoutData.Instance.BonusHealthPickup = false;
+            }
         }
 
         for (int i = 0; i < count; i++)

@@ -17,6 +17,10 @@ public class LevelUpgradeUI : MonoBehaviour
     [SerializeField] private TMP_Text armorOptionText;
     [SerializeField] private TMP_Text damageOptionText;
     [SerializeField] private TMP_Text fireRateOptionText;
+    [Tooltip("Selected-unit stats panel (Canvas/UnitInfoPanel) — hidden while the upgrade panel is up so it doesn't show the mech's full MechSetup-style stat card next to the 4 upgrade choices.")]
+    [SerializeField] private GameObject unitInfoPanel;
+    [Tooltip("Static reminder shown next to the 4 upgrade choices about enemy scaling (see RunProgression.EnemyStatIncrementPerLevel).")]
+    [SerializeField] private TMP_Text enemyScalingHintText;
 
     [Header("Player Lookup")]
     [Tooltip("Слой юнита игрока — тот же, что и playerUnitLayer в MissionController")]
@@ -46,6 +50,12 @@ public class LevelUpgradeUI : MonoBehaviour
     {
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
+
+        if (enemyScalingHintText != null)
+        {
+            int percent = Mathf.RoundToInt(RunProgression.EnemyStatIncrementPerLevel * 100f);
+            enemyScalingHintText.text = $"Противники получают +{percent}% к характеристикам за каждый уровень.";
+        }
     }
 
     private void HandleMissionEnded(MissionState state)
@@ -64,6 +74,13 @@ public class LevelUpgradeUI : MonoBehaviour
             return;
 
         RefreshOptionTexts();
+
+        // Hide the selected-unit stats panel — the player's mech is normally still selected at
+        // the moment of victory, so without this it kept showing its full stat card (HP/armor/
+        // damage/range) right next to the 4 upgrade choices below, duplicating information this
+        // screen has no business displaying.
+        if (unitInfoPanel != null)
+            unitInfoPanel.SetActive(false);
 
         if (upgradePanel != null)
             upgradePanel.SetActive(true);
