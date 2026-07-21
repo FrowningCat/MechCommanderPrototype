@@ -14,6 +14,9 @@ public class MechLoadoutApplier : MonoBehaviour
     [Header("Model Variants (index-matched to setup screen)")]
     [SerializeField] private GameObject[] modelVariants;
 
+    [Tooltip("Index-matched to modelVariants. Portrait shown in UnitInfoPanel for whichever model is active.")]
+    [SerializeField] private Sprite[] modelPortraits;
+
     [Tooltip("Index-matched to modelVariants. Defines the HP/armor/speed archetype for each model.")]
     [SerializeField]
     private ModelStats[] modelStats =
@@ -122,6 +125,20 @@ public class MechLoadoutApplier : MonoBehaviour
                 activeModel = modelVariants[i];
         }
 
+        ApplyPortrait(modelIndex);
+
         return activeModel;
+    }
+
+    private void ApplyPortrait(int modelIndex)
+    {
+        if (modelPortraits == null || modelPortraits.Length == 0)
+            return;
+
+        modelIndex = Mathf.Clamp(modelIndex, 0, modelPortraits.Length - 1);
+
+        UnitSelectable unitSelectable = GetComponent<UnitSelectable>();
+        if (unitSelectable != null)
+            unitSelectable.SetPortrait(modelPortraits[modelIndex]);
     }
 }

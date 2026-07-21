@@ -271,6 +271,7 @@ MonoBehaviour:
   fill: {fileID: 2243302925702728058}
   offset: {x: 0, y: 2.5, z: 0}
   smoothSpeed: 5
+  heightMargin: 0.3
 --- !u!1 &7981178006859200507
 GameObject:
   m_ObjectHideFlags: 0
@@ -563,7 +564,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitSelectable
   selectionIndicator: {fileID: 7981178006859200507}
-  portrait: {fileID: 0}
+  portrait: {fileID: 21300000, guid: 9aad0e995d5b177449c05555777059e5, type: 3}
 --- !u!114 &7954318307368102704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -601,6 +602,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   lineOfSightHeightOffset: 1
+  splashRadius: 3
+  splashDamageMultiplier: 0.4
+  splashLayer:
+    serializedVersion: 2
+    m_Bits: 704
   fireSound: {fileID: 0}
 --- !u!114 &4323509510132730405
 MonoBehaviour:
@@ -622,6 +628,7 @@ MonoBehaviour:
   leashRange: 14
   guardFollowDistance: 4
   patrolWaypointThreshold: 0.5
+  combatRotationSpeed: 240
 --- !u!114 &8145090080737916186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -676,6 +683,24 @@ MonoBehaviour:
   - {fileID: 813767349012395254}
   - {fileID: 8716744698458297167}
   - {fileID: 9029090777204816148}
+  modelPortraits:
+  - {fileID: 21300000, guid: 9aad0e995d5b177449c05555777059e5, type: 3}
+  - {fileID: 21300000, guid: 1fb0fcf32d955ad4692eaf2bb6c40026, type: 3}
+  - {fileID: 21300000, guid: 60fec5d3079882445a6195fe5e711532, type: 3}
+  - {fileID: 21300000, guid: 8d6c695e5ef7b3b49a23038cded1f012, type: 3}
+  modelStats:
+  - maxHealth: 120
+    armorValue: 4
+    agentSpeed: 6
+  - maxHealth: 90
+    armorValue: 1
+    agentSpeed: 7.5
+  - maxHealth: 160
+    armorValue: 7
+    agentSpeed: 4.5
+  - maxHealth: 130
+    armorValue: 5
+    agentSpeed: 5.5
 --- !u!1001 &543383896033380775
 PrefabInstance:
   m_ObjectHideFlags: 0

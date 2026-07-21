@@ -39,6 +39,11 @@ public class RTSInputReader : MonoBehaviour
     private readonly List<MechMovement> selectedMechs = new();
     private readonly List<MechCombat> selectedCombatUnits = new();
 
+    // Enemy units clicked for inspection only (HUD/portrait display) — never
+    // participate in move/attack orders, so they're kept out of selectedUnits
+    // and its parallel movement/combat lists entirely. At most one entry.
+    private readonly List<UnitSelectable> inspectedEnemyUnits = new();
+
     // Parallel to selectedUnits/selectedMechs (same index, may contain null
     // for units without MechCombat) — avoids GetComponent lookups in hot paths.
     private readonly List<MechCombat> selectedMechCombats = new();
@@ -155,8 +160,17 @@ public class RTSInputReader : MonoBehaviour
                 ToggleUnit(unit);
             else
                 SelectOnly(unit);
+
+            return;
         }
-        else if (!addSelect)
+
+        if (!addSelect && Physics.Raycast(ray, out RaycastHit enemyHit, 500f, enemyLayer))
+        {
+            SelectEnemyForInspection(enemyHit.collider.GetComponentInParent<UnitSelectable>());
+            return;
+        }
+
+        if (!addSelect)
         {
             ClearSelection();
         }
@@ -401,6 +415,17 @@ public class RTSInputReader : MonoBehaviour
         return point;
     }
 
+    private void SelectEnemyForInspection(UnitSelectable enemyUnit)
+    {
+        ClearSelection();
+
+        if (enemyUnit == null)
+            return;
+
+        inspectedEnemyUnits.Add(enemyUnit);
+        enemyUnit.Select();
+    }
+
     private void SelectOnly(UnitSelectable unit)
     {
         ClearSelection();
@@ -475,10 +500,15 @@ public class RTSInputReader : MonoBehaviour
         selectedMechs.Clear();
         selectedMechCombats.Clear();
         selectedCombatUnits.Clear();
+
+        foreach (UnitSelectable unit in inspectedEnemyUnits)
+            unit.Deselect();
+
+        inspectedEnemyUnits.Clear();
     }
 
     public IReadOnlyList<UnitSelectable> GetSelectedUnits()
     {
-        return selectedUnits;
+        return selectedUnits.Count > 0 ? selectedUnits : inspectedEnemyUnits;
     }
 }
