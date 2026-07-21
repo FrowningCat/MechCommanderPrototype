@@ -89,6 +89,8 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private float edgeMargin = 4f;
     [Tooltip("Gap left between the real NavMesh bounding box edge and the inner edge of the water ring, so the water never overlaps real dry ground (the bounding box is not a square — e.g. a road segment's tip can stick out past the map's nominal half-size).")]
     [SerializeField] private float waterInnerGap = 2f;
+    [Tooltip("The hand-placed terrain zones' visible ground mesh (Ground_Mud/Rocks/Road) doesn't line up exactly with the NavMesh bounding box the water ring is built from (the mesh runs a bit past the actual walkable triangulation), which used to leave a thin gap of bare skybox-lit backdrop plane showing through as a dark seam right at the land/water border (Stage 36). This only grows the RENDERED water quad (not its NavMeshModifierVolume carve-out) so it tucks under the land mesh's edge and closes that gap, on every side, for every map size.")]
+    [SerializeField] private float waterVisualOverlap = 3f;
     [Tooltip("The water ring's outer edge extends this many times the NavMesh bounding box's largest dimension beyond its own edge, so water is always well past the camera's pan/zoom limits (see cameraBoundsSlack) no matter the map shape. Water no longer needs to track areaSize precisely (see design notes) — it's a background visual only. This is only a floor, though — see ComputeBackdropOuterHalf, which also sizes the backdrop off the camera's actual max zoom-out view distance, since on small maps that distance outgrows a footprint-based multiplier and used to expose the skybox's grey horizon past the water's edge (Stage 34).")]
     [SerializeField] private float waterExtentMultiplier = 4f;
     [Tooltip("Safety multiplier applied to RTSCameraController.ComputeMaxGroundViewDistance() when sizing the water/ground backdrop — covers frustum-corner rays (which reach slightly less far than the pure top-edge ray this is based on, but the margin is cheap) and any future FOV/zoom tuning.")]
@@ -507,7 +509,13 @@ public class LevelGenerator : MonoBehaviour
         // mask), but it silently added a huge extra walkable area once VisualOnly was included to
         // pick up the real terrain-zone meshes, because Zone_Water's NavMeshModifierVolume below is
         // sized correctly (world units) and only carved out the small, correctly-sized portion.
-        groundWater.localScale = new Vector3(sizeX / 10f, 0.4f, sizeZ / 10f);
+        // The rendered quad is grown by waterVisualOverlap on every side (symmetric about the same
+        // center) purely to hide the land/water seam (see its tooltip) — the NavMeshModifierVolume
+        // below still uses the original, un-grown sizeX/sizeZ so pathing/carve-out behavior is
+        // unchanged.
+        float visualSizeX = sizeX + waterVisualOverlap * 2f;
+        float visualSizeZ = sizeZ + waterVisualOverlap * 2f;
+        groundWater.localScale = new Vector3(visualSizeX / 10f, 0.4f, visualSizeZ / 10f);
 
         if (zoneWater == null)
             return;
