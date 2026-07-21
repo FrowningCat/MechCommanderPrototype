@@ -17,6 +17,12 @@ public class LevelGenerator : MonoBehaviour
         public int maxEnemies;
     }
 
+    public enum MapShape
+    {
+        Square,
+        Elongated,
+    }
+
     private struct GroundBounds
     {
         public float minX, maxX, minZ, maxZ;
@@ -50,6 +56,10 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private GameObject[] legacyGroundZones;
     [Tooltip("The areaSize the legacyGroundZones' authored positions/scales were hand-placed for (currently the Large preset, 100). Every zone is uniformly scaled from the world origin by (current areaSize / this value), so the same hand-authored road/mud/rocks layout grows or shrinks with the generated map instead of clipping or leaving gaps.")]
     [SerializeField] private float terrainZoneReferenceAreaSize = 100f;
+    [Tooltip("Stage 34: alternate hand-placed terrain zone layout for elongated (~2:1) maps, used instead of legacyGroundZones when MapShape.Elongated is picked. NOT authored yet — this array is empty until someone hand-places a long-rectangle road/mud/rocks layout in the scene the same way legacyGroundZones was (around the world origin, sized for terrainZoneReferenceAreaSize). Scaling non-uniformly to stretch the existing square layout would distort the art, so this needs its own authored set rather than a scale trick; ResolveMapShape() below falls back to Square whenever this is empty, so nothing breaks in the meantime.")]
+    [SerializeField] private GameObject[] elongatedLegacyGroundZones;
+    [Tooltip("Chance of picking MapShape.Elongated over Square when elongatedLegacyGroundZones is populated.")]
+    [SerializeField] private float elongatedMapChance = 0.5f;
 
     [Header("Intro cutscene tie-ins")]
     [SerializeField] private Transform enemySilhouetteIntro;
@@ -64,17 +74,23 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private float edgeMargin = 4f;
     [Tooltip("Gap left between the real NavMesh bounding box edge and the inner edge of the water ring, so the water never overlaps real dry ground (the bounding box is not a square — e.g. a road segment's tip can stick out past the map's nominal half-size).")]
     [SerializeField] private float waterInnerGap = 2f;
-    [Tooltip("The water ring's outer edge extends this many times the NavMesh bounding box's largest dimension beyond its own edge, so water is always well past the camera's pan/zoom limits (see cameraBoundsSlack) no matter the map shape. Water no longer needs to track areaSize precisely (see design notes) — it's a background visual only.")]
+    [Tooltip("The water ring's outer edge extends this many times the NavMesh bounding box's largest dimension beyond its own edge, so water is always well past the camera's pan/zoom limits (see cameraBoundsSlack) no matter the map shape. Water no longer needs to track areaSize precisely (see design notes) — it's a background visual only. This is only a floor, though — see ComputeBackdropOuterHalf, which also sizes the backdrop off the camera's actual max zoom-out view distance, since on small maps that distance outgrows a footprint-based multiplier and used to expose the skybox's grey horizon past the water's edge (Stage 34).")]
     [SerializeField] private float waterExtentMultiplier = 4f;
+    [Tooltip("Safety multiplier applied to RTSCameraController.ComputeMaxGroundViewDistance() when sizing the water/ground backdrop — covers frustum-corner rays (which reach slightly less far than the pure top-edge ray this is based on, but the margin is cheap) and any future FOV/zoom tuning.")]
+    [SerializeField] private float cameraViewDistanceSafetyFactor = 1.3f;
     [Tooltip("Camera pan bounds extend this far OUTSIDE the real NavMesh bounding box on every side, so panning to the limit shows a comfortable strip of water instead of stopping dead at the dry-ground edge.")]
     [SerializeField] private float cameraBoundsSlack = 6f;
     [Tooltip("Extra slack added on top of cameraBoundsSlack for the bottom (-Z) camera bound specifically — panning toward the player's start edge felt like it hit a wall.")]
     [SerializeField] private float cameraBoundsBottomExtraSlack = 6f;
-    [SerializeField] private float enemyMinDistanceFromPlayer = 14f;
+    [Tooltip("Must clear EnemyAI's detectionRadius (15, see EnemyAI.cs) — otherwise an enemy spawns already inside its own detection sphere and starts moving/firing on the very first frame. 20 = detectionRadius + a 5-unit margin, which also comfortably clears both weapons' ranges (enemy 10, player mech 12, see Weapon prefabs) so nothing is in firing range at spawn either.")]
+    [SerializeField] private float enemyMinDistanceFromPlayer = 20f;
     [SerializeField] private float enemyMinDistanceFromOthers = 9f;
     [SerializeField] private float pickupMinDistanceFromOthers = 5f;
     [SerializeField] private float repairZoneForwardOffset = 8f;
+    [Tooltip("General pickup rule (Stage 34): exactly this many enemies places 2 HealthPickups instead of the usual 1; more than this places a RepairZone instead of any HealthPickup. Fewer keeps the default 1 HealthPickup.")]
     [SerializeField] private int enemiesRequiredForRepairZone = 3;
+    [Tooltip("Hard cap on enemy count for the first level of a run (RunLevel 1), regardless of what the area-based formula and MapSizeSettings would otherwise allow.")]
+    [SerializeField] private int firstLevelMaxEnemies = 2;
     [SerializeField] private int playerSpawnMaxAttempts = 40;
     [SerializeField] private int enemySpawnMaxAttempts = 150;
     [Tooltip("Max distance NavMesh.SamplePosition is allowed to snap a randomly-picked ground point by. Small on purpose — the point already came from the NavMesh triangulation itself, this just rejects points that land in carved-out holes (e.g. inside a building footprint).")]
@@ -85,6 +101,7 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private float navMeshAreaPerEnemy = 1550f;
 
     public MapSize GeneratedMapSize { get; private set; }
+    public MapShape GeneratedMapShape { get; private set; }
     public bool GeneratedWinOnAllEnemiesDefeated { get; private set; }
 
     private NavMeshTriangulation cachedTriangulation;
@@ -101,6 +118,13 @@ public class LevelGenerator : MonoBehaviour
         MapSizeSettings settings = ResolveMapSize(out MapSize mapSize);
         GeneratedMapSize = mapSize;
 
+        MapShape mapShape = ResolveMapShape();
+        GeneratedMapShape = mapShape;
+
+        GameObject[] activeZones = mapShape == MapShape.Elongated ? elongatedLegacyGroundZones : legacyGroundZones;
+        GameObject[] inactiveZones = mapShape == MapShape.Elongated ? legacyGroundZones : elongatedLegacyGroundZones;
+        DeactivateZones(inactiveZones);
+
         // Only the terrain zones (the actual dry-ground meshes) need to be in place before the
         // bake — ground/water are purely background visuals now and are sized AFTER the real
         // walkable footprint is known (below), instead of from the nominal areaSize/half square.
@@ -109,7 +133,7 @@ public class LevelGenerator : MonoBehaviour
         // and uniformly scaled by areaSize, so their real extent does not necessarily fit inside
         // the nominal half-square (e.g. a road segment's tip can stick out past `half` on one
         // axis) — water built from `half` then visually overlapped real dry ground at those tips.
-        ScaleLegacyZones(settings.areaSize);
+        ScaleLegacyZones(activeZones, settings.areaSize);
 
         // Static geometry (repositioned terrain zones) is final now — bake before anything below
         // queries the NavMesh (player spawn validation, agent placement, pathfinding).
@@ -194,7 +218,7 @@ public class LevelGenerator : MonoBehaviour
         PlaceEnemySilhouette(newPlayerPos, enemyPositions);
 
         List<Vector3> occupiedPoints = new List<Vector3>(enemyPositions) { newPlayerPos };
-        PlaceHealthPickup(newPlayerPos, occupiedPoints);
+        PlaceHealthPickup(newPlayerPos, occupiedPoints, enemyCount);
 
         if (enemyCount > enemiesRequiredForRepairZone)
             PlaceRepairZone(newPlayerPos);
@@ -229,6 +253,53 @@ public class LevelGenerator : MonoBehaviour
         };
     }
 
+    // Elongated is only ever picked once an alternate hand-authored layout exists in
+    // elongatedLegacyGroundZones (see its Tooltip) — until then this always resolves to Square.
+    private MapShape ResolveMapShape()
+    {
+        if (elongatedLegacyGroundZones == null || elongatedLegacyGroundZones.Length == 0)
+            return MapShape.Square;
+
+        return Random.value < elongatedMapChance ? MapShape.Elongated : MapShape.Square;
+    }
+
+    private void DeactivateZones(GameObject[] zones)
+    {
+        if (zones == null)
+            return;
+
+        foreach (GameObject zone in zones)
+        {
+            if (zone != null)
+                zone.SetActive(false);
+        }
+    }
+
+    // Half-size to use for both the ground backdrop and the water ring's outer edge (must match
+    // exactly, or the backdrop's default-grey material — see Stage 34 — pokes out past the water).
+    // Two candidates are combined by taking the larger:
+    //  - footprint-based: the old behavior, scales with map size, generous on Medium/Large.
+    //  - camera-based: map half-extent + camera pan slack + the camera's own worst-case top-of-
+    //    screen view distance at max zoom-out (see RTSCameraController.ComputeMaxGroundViewDistance).
+    // The footprint-based figure alone isn't enough on small maps: camera zoom range (10-60 height)
+    // doesn't scale down with map size, so at max zoom-out on a Small map the top of the screen
+    // could see well past a footprint-scaled backdrop — exposing the skybox's flat-grey
+    // GroundColor beyond the backdrop's edge as a diagonal band (Camera.clearFlags is Skybox).
+    private float ComputeBackdropOuterHalf(GroundBounds bounds)
+    {
+        float footprint = Mathf.Max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
+        float footprintBasedHalf = footprint * waterExtentMultiplier * 0.5f;
+
+        if (rtsCameraController == null)
+            return footprintBasedHalf;
+
+        float maxViewDistance = rtsCameraController.ComputeMaxGroundViewDistance() * cameraViewDistanceSafetyFactor;
+        float panSlack = cameraBoundsSlack + cameraBoundsBottomExtraSlack;
+        float cameraBasedHalf = footprint * 0.5f + panSlack + maxViewDistance;
+
+        return Mathf.Max(footprintBasedHalf, cameraBasedHalf);
+    }
+
     // Sized and centered from the real baked NavMesh bounding box (not the nominal areaSize
     // square) — see the note in Generate() for why the square math was wrong. This is a pure
     // background visual with no gameplay role, so it's simply blown out to comfortably outrun the
@@ -240,12 +311,11 @@ public class LevelGenerator : MonoBehaviour
 
         float centerX = (bounds.minX + bounds.maxX) * 0.5f;
         float centerZ = (bounds.minZ + bounds.maxZ) * 0.5f;
-        float footprint = Mathf.Max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
-        // Must match BuildWaterBorder's outer span (footprint * waterExtentMultiplier) exactly —
-        // this used to be double that, so the ground backdrop stuck out past the water ring's
-        // outer edge as a visible grey band around small maps, where the extra margin is a much
-        // bigger fraction of what's on screen at normal zoom.
-        float outerSize = footprint * waterExtentMultiplier;
+        // Must match BuildWaterBorder's outer span exactly — this used to be double that, so the
+        // ground backdrop stuck out past the water ring's outer edge as a visible grey band around
+        // small maps, where the extra margin is a much bigger fraction of what's on screen at
+        // normal zoom.
+        float outerSize = ComputeBackdropOuterHalf(bounds) * 2f;
 
         groundPlane.position = new Vector3(centerX, groundPlane.position.y, centerZ);
         // Unity's default Plane mesh is 10x10 at scale 1.
@@ -260,14 +330,14 @@ public class LevelGenerator : MonoBehaviour
     // uniformly scaling every zone's position and (for the terrain meshes, not the Cover prop) size
     // by the same factor the map itself is scaled by keeps the baked walkable area exactly matching
     // what's rendered, at every MapSize, without needing per-size on/off toggling.
-    private void ScaleLegacyZones(float areaSize)
+    private void ScaleLegacyZones(GameObject[] zones, float areaSize)
     {
-        if (legacyGroundZones == null)
+        if (zones == null)
             return;
 
         float factor = areaSize / terrainZoneReferenceAreaSize;
 
-        foreach (GameObject zone in legacyGroundZones)
+        foreach (GameObject zone in zones)
         {
             if (zone == null)
                 continue;
@@ -285,9 +355,10 @@ public class LevelGenerator : MonoBehaviour
     // ring's inner edge sits waterInnerGap outside `bounds`, which by definition contains every
     // walkable vertex, so this can never overlap real dry ground no matter how irregular the
     // terrain shape is (unlike the old half-based square, which didn't account for terrain zones
-    // whose scaled extent pokes past the nominal half on one axis). The outer edge is pushed
-    // waterExtentMultiplier times the bounding box's footprint away, comfortably past the camera
-    // bounds (cameraBoundsSlack) so its own far edge is never visible.
+    // whose scaled extent pokes past the nominal half on one axis). The outer edge is pushed out by
+    // ComputeBackdropOuterHalf — comfortably past both the camera pan bounds AND its actual
+    // zoomed-out view distance (see that method) — so its own far edge, and the skybox beyond it,
+    // are never visible.
     private void BuildWaterBorder(GroundBounds bounds)
     {
         if (waterZonePrefab == null)
@@ -306,8 +377,7 @@ public class LevelGenerator : MonoBehaviour
 
         float centerX = (bounds.minX + bounds.maxX) * 0.5f;
         float centerZ = (bounds.minZ + bounds.maxZ) * 0.5f;
-        float footprint = Mathf.Max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
-        float outerHalf = footprint * waterExtentMultiplier * 0.5f;
+        float outerHalf = ComputeBackdropOuterHalf(bounds);
 
         float outerMinX = centerX - outerHalf;
         float outerMaxX = centerX + outerHalf;
@@ -432,7 +502,13 @@ public class LevelGenerator : MonoBehaviour
     private int ComputeEnemyCount(MapSizeSettings settings)
     {
         int raw = Mathf.RoundToInt(cachedTotalWalkableArea / navMeshAreaPerEnemy);
-        return Mathf.Clamp(raw, settings.minEnemies, settings.maxEnemies);
+        int count = Mathf.Clamp(raw, settings.minEnemies, settings.maxEnemies);
+
+        int runLevel = MechLoadoutData.Instance != null ? MechLoadoutData.Instance.CurrentRunLevel : 1;
+        if (runLevel <= 1)
+            count = Mathf.Min(count, firstLevelMaxEnemies);
+
+        return count;
     }
 
     // Picks a uniformly-random point on the real baked walkable surface: a triangle is chosen with
@@ -659,15 +735,23 @@ public class LevelGenerator : MonoBehaviour
             enemySilhouetteIntro.rotation = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
     }
 
-    private void PlaceHealthPickup(Vector3 playerPos, List<Vector3> avoidPoints)
+    // General pickup rule (Stage 34): exactly enemiesRequiredForRepairZone (3) enemies bumps the
+    // usual 1 HealthPickup up to 2 (a bit of extra cushion for a fight that's not yet hard enough
+    // for a RepairZone); more than that replaces HealthPickup entirely with a RepairZone (see the
+    // call site) since sustained healing matters more than a one-time heal once there are 4+
+    // enemies. 1-2 enemies keep the original single HealthPickup. The run-upgrade bonus pickup
+    // (MechLoadoutData.BonusHealthPickup) still adds one on top of whatever this rule produces,
+    // including the 0 case, so that upgrade always delivers something.
+    private void PlaceHealthPickup(Vector3 playerPos, List<Vector3> avoidPoints, int enemyCount)
     {
         if (healthPickupPrefab == null)
             return;
 
-        int count = 1;
+        int count = enemyCount == enemiesRequiredForRepairZone ? 2 : (enemyCount > enemiesRequiredForRepairZone ? 0 : 1);
+
         if (MechLoadoutData.Instance != null && MechLoadoutData.Instance.BonusHealthPickup)
         {
-            count = 2;
+            count += 1;
             MechLoadoutData.Instance.BonusHealthPickup = false;
         }
 

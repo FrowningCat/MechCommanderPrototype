@@ -101,12 +101,24 @@ public class RTSCameraController : MonoBehaviour
         transform.position = pos;
     }
 
+    // Centers the camera directly over `point` at the game's standard viewing angle (the fixed
+    // downward-forward pitch set on this transform, unaffected by zoom — HandleZoom only ever
+    // changes height). The camera doesn't look straight down, so simply matching X/Z to the point
+    // leaves it looking at ground well in front of the point; the camera has to sit back by
+    // (height above the point) * tan(pitch) for the point to land in the center of the view. This
+    // replaces a hardcoded "-20" that only happened to roughly work at the scene's default height
+    // (25) and didn't account for the point's own Y, so it visibly drifted off-center whenever the
+    // camera wasn't at that exact height (e.g. after zooming) or the target sat above/below y=0.
     public void FocusOnPoint(Vector3 point)
     {
         Vector3 newPosition = transform.position;
 
+        float pitchRad = transform.eulerAngles.x * Mathf.Deg2Rad;
+        float heightAbovePoint = newPosition.y - point.y;
+        float forwardOffset = heightAbovePoint * Mathf.Tan(pitchRad);
+
         newPosition.x = Mathf.Clamp(point.x, boundMinX, boundMaxX);
-        newPosition.z = Mathf.Clamp(point.z - 20f, boundMinZ, boundMaxZ);
+        newPosition.z = Mathf.Clamp(point.z - forwardOffset, boundMinZ, boundMaxZ);
 
         transform.position = newPosition;
     }
@@ -120,5 +132,32 @@ public class RTSCameraController : MonoBehaviour
         boundMaxX = maxX;
         boundMinZ = minZ;
         boundMaxZ = maxZ;
+    }
+
+    public float MaxHeight => maxHeight;
+
+    // Worst-case horizontal distance from the camera's XZ position to the ground point visible at
+    // the very TOP edge of the screen, at max zoom-out (maxHeight). Used by LevelGenerator to size
+    // the water/ground backdrop so it can never be outrun by panning + zooming out, which would
+    // otherwise expose the skybox (see Stage 34 grey-horizon bug — Camera.clearFlags is Skybox, and
+    // the procedural skybox's GroundColor is a flat grey that shows wherever the water mesh runs
+    // out before the view ray does).
+    // Only the vertical half-FOV matters for this ray's angle below horizontal: pitch is the only
+    // rotation this rig ever applies (no yaw/roll), so any ray inside the frustum keeps the same
+    // downward angle as the vertical-edge ray that defines the top of the screen — horizontal
+    // (left/right) offset doesn't change elevation.
+    public float ComputeMaxGroundViewDistance()
+    {
+        Camera cam = GetComponent<Camera>();
+        float verticalHalfFov = cam != null ? cam.fieldOfView * 0.5f : 30f;
+        float pitchDeg = transform.eulerAngles.x;
+        float rayAngleBelowHorizontal = pitchDeg - verticalHalfFov;
+
+        // A near-horizontal (or upward) top-of-frustum ray never hits the ground plane at a finite
+        // distance — fall back to a large-but-finite value rather than Infinity.
+        if (rayAngleBelowHorizontal <= 1f)
+            return maxHeight * 200f;
+
+        return maxHeight / Mathf.Tan(rayAngleBelowHorizontal * Mathf.Deg2Rad);
     }
 }
