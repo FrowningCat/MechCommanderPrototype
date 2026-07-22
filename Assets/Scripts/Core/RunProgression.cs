@@ -22,7 +22,7 @@ public static class RunProgression
     }
 
     // A single pick on the between-level upgrade screen grants a flat +15% to the chosen stat's
-    // running multiplier (see MechLoadoutData.RunHealthMultiplier etc.), stacking multiplicatively
+    // running multiplier (see MechLoadoutData.MechRunState), stacking multiplicatively
     // pick over pick. LevelUpgradeUI previews the result the exact same way it applies it
     // (currentEffectiveValue * (1 + increment)), so the preview can never drift from the outcome.
     public const float PlayerUpgradeIncrement = 0.15f;

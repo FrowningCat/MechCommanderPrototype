@@ -52,6 +52,13 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] private GameObject repairZonePrefab;
     [SerializeField] private GameObject extractionZonePrefab;
 
+    [Header("Player squad (Stage 38)")]
+    [Tooltip("Instantiated once per boss-reward mech beyond the hand-placed scene 'Mech' (index 0). Must be the same prefab the scene's Mech object is an instance of, so it carries the same MechLoadoutApplier model/portrait arrays.")]
+    [SerializeField] private GameObject playerMechPrefab;
+    [Tooltip("Minimum distance kept between two player mechs' start points (and from the primary player spawn) — separate from enemyMinDistanceFromOthers since this is a much smaller squad standing together, not a spread-out enemy roster.")]
+    [SerializeField] private float playerSpawnMinDistanceFromOthers = 6f;
+    [SerializeField] private int playerSpawnMaxAttemptsPerMech = 60;
+
     [Header("Boss levels (Stage 35)")]
     [Tooltip("Every Nth run level (3, 6, 9, ...) spawns a single boss instead of the normal enemy roster.")]
     [SerializeField] private int bossLevelInterval = 3;
@@ -184,6 +191,11 @@ public class LevelGenerator : MonoBehaviour
         int runLevel = MechLoadoutData.Instance != null ? MechLoadoutData.Instance.CurrentRunLevel : 1;
         bool isBossLevel = bossLevelInterval > 0 && runLevel % bossLevelInterval == 0;
 
+        // Recorded for LevelUpgradeUI to read on this level's eventual Victory, so it doesn't need
+        // to duplicate the bossLevelInterval math to know whether a boss reward mech is due.
+        if (MechLoadoutData.Instance != null)
+            MechLoadoutData.Instance.CurrentLevelIsBoss = isBossLevel;
+
         int enemyCount = isBossLevel ? 1 : ComputeEnemyCount(settings);
 
         Vector3 oldPlayerPos = playerMech != null ? playerMech.position : Vector3.zero;
@@ -239,8 +251,20 @@ public class LevelGenerator : MonoBehaviour
             playerAgent.Warp(newPlayerPos);
         }
 
+        // Stage 38: one start point per currently-alive player mech, not just the primary one —
+        // the same NavMesh-triangulation validation as the primary spawn (TryGetRandomGroundPoint),
+        // kept a reasonable distance from each other and, via the updated GenerateEnemyPositions
+        // below, from every enemy too. Generated before enemies so enemy placement can steer clear
+        // of the whole squad instead of only the primary spawn point.
+        List<Vector3> playerSpawnPositions = new List<Vector3> { newPlayerPos };
+        int additionalMechCount = MechLoadoutData.Instance != null ? MechLoadoutData.Instance.MechStates.Count - 1 : 0;
+        if (additionalMechCount > 0)
+            playerSpawnPositions.AddRange(GenerateAdditionalPlayerSpawnPositions(additionalMechCount, newPlayerPos.y, playerSpawnPositions));
+
         CleanupOldEnemySpawnPoints();
-        List<Vector3> enemyPositions = GenerateEnemyPositions(enemyCount, newPlayerPos);
+        List<Vector3> enemyPositions = GenerateEnemyPositions(enemyCount, playerSpawnPositions);
+
+        SpawnAdditionalPlayerMechs(playerSpawnPositions);
 
         if (isBossLevel)
         {
@@ -323,6 +347,12 @@ public class LevelGenerator : MonoBehaviour
 
     private MapSizeSettings ResolveMapSize(out MapSize mapSize)
     {
+        // Stage 38: once the run's first boss is dead, Small is permanently off the table for the
+        // rest of the run — even if the player picked it on MechSetup, or a random roll would
+        // otherwise land on it. Overriding forcedMapSize (the editor testing override) too would
+        // make that override useless for testing Small explicitly, so it's exempt.
+        bool smallLocked = !overrideMapSize && MechLoadoutData.Instance != null && MechLoadoutData.Instance.HasDefeatedFirstBoss;
+
         if (overrideMapSize)
         {
             mapSize = forcedMapSize;
@@ -330,10 +360,13 @@ public class LevelGenerator : MonoBehaviour
         else if (MechLoadoutData.Instance != null && MechLoadoutData.Instance.SelectedMapSize.HasValue)
         {
             mapSize = MechLoadoutData.Instance.SelectedMapSize.Value;
+
+            if (smallLocked && mapSize == MapSize.Small)
+                mapSize = MapSize.Medium;
         }
         else
         {
-            mapSize = (MapSize)Random.Range(0, 3);
+            mapSize = smallLocked ? (MapSize)Random.Range(1, 3) : (MapSize)Random.Range(0, 3);
         }
 
         return mapSize switch
@@ -605,6 +638,12 @@ public class LevelGenerator : MonoBehaviour
         if (runLevel <= 1)
             count = Mathf.Min(count, firstLevelMaxEnemies);
 
+        // Stage 38: +1 enemy per boss defeated so far this run, stacked on top of (and not
+        // re-clamped against) the area-based min/max above — normal levels are meant to keep
+        // getting harder after every boss, past what the map-size preset alone would ever produce.
+        if (MechLoadoutData.Instance != null)
+            count += MechLoadoutData.Instance.BossesDefeatedCount;
+
         return count;
     }
 
@@ -740,9 +779,12 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
-    private List<Vector3> GenerateEnemyPositions(int count, Vector3 playerPos)
+    // playerPositions holds one point per currently-alive player mech (Stage 38) — an enemy must
+    // clear enemyMinDistanceFromPlayer from EVERY one of them, not just a single primary spawn.
+    private List<Vector3> GenerateEnemyPositions(int count, List<Vector3> playerPositions)
     {
         List<Vector3> result = new List<Vector3>(count);
+        float spawnY = playerPositions.Count > 0 ? playerPositions[0].y : 0f;
 
         for (int i = 0; i < count; i++)
         {
@@ -753,9 +795,9 @@ public class LevelGenerator : MonoBehaviour
                 if (!TryGetRandomGroundPoint(out Vector3 candidate))
                     continue;
 
-                candidate.y = playerPos.y;
+                candidate.y = spawnY;
 
-                if (Vector3.Distance(candidate, playerPos) < enemyMinDistanceFromPlayer)
+                if (TooCloseToAny(candidate, playerPositions, enemyMinDistanceFromPlayer))
                     continue;
 
                 if (TooCloseToAny(candidate, result, enemyMinDistanceFromOthers))
@@ -771,13 +813,85 @@ public class LevelGenerator : MonoBehaviour
 
                 if (TryGetRandomGroundPoint(out Vector3 fallback))
                 {
-                    fallback.y = playerPos.y;
+                    fallback.y = spawnY;
                     result.Add(fallback);
                 }
             }
         }
 
         return result;
+    }
+
+    // Stage 38: finds `count` extra NavMesh-valid start points for boss-reward player mechs, kept
+    // playerSpawnMinDistanceFromOthers away from the primary spawn and from each other (a much
+    // tighter cluster than enemyMinDistanceFromOthers — this is one squad standing together, not a
+    // spread-out enemy roster). Falls back to the last candidate found (or, failing even that, the
+    // primary spawn) rather than skipping a mech outright, same failure policy as enemy placement.
+    private List<Vector3> GenerateAdditionalPlayerSpawnPositions(int count, float y, List<Vector3> existingPositions)
+    {
+        List<Vector3> result = new List<Vector3>(count);
+        List<Vector3> allPositions = new List<Vector3>(existingPositions);
+
+        for (int i = 0; i < count; i++)
+        {
+            bool placed = false;
+
+            for (int attempt = 0; attempt < playerSpawnMaxAttemptsPerMech && !placed; attempt++)
+            {
+                if (!TryGetRandomGroundPoint(out Vector3 candidate))
+                    continue;
+
+                candidate.y = y;
+
+                if (TooCloseToAny(candidate, allPositions, playerSpawnMinDistanceFromOthers))
+                    continue;
+
+                result.Add(candidate);
+                allPositions.Add(candidate);
+                placed = true;
+            }
+
+            if (!placed)
+            {
+                Debug.LogWarning($"[LevelGenerator] Не удалось найти валидную точку спавна доп. меха игрока #{i} за {playerSpawnMaxAttemptsPerMech} попыток — использую последнюю попавшуюся точку на земле без полной проверки дистанций.");
+
+                Vector3 fallback = TryGetRandomGroundPoint(out Vector3 groundPoint)
+                    ? new Vector3(groundPoint.x, y, groundPoint.z)
+                    : (existingPositions.Count > 0 ? existingPositions[0] : new Vector3(0f, y, 0f));
+
+                result.Add(fallback);
+                allPositions.Add(fallback);
+            }
+        }
+
+        return result;
+    }
+
+    // Stage 38: instantiates one playerMechPrefab copy per boss-reward mech (MechStates index 1+)
+    // at the corresponding spawn point, and applies that slot's loadout/run-upgrade state via
+    // MechLoadoutApplier.ApplyLoadout — the primary scene "Mech" (index 0, positions[0]) is handled
+    // separately above and never touched here.
+    private void SpawnAdditionalPlayerMechs(List<Vector3> positions)
+    {
+        if (playerMechPrefab == null)
+        {
+            if (positions.Count > 1)
+                Debug.LogWarning("[LevelGenerator] playerMechPrefab не назначен — доп. мехи игрока не заспавнены.");
+            return;
+        }
+
+        for (int i = 1; i < positions.Count; i++)
+        {
+            GameObject mech = Instantiate(playerMechPrefab, positions[i], Quaternion.identity);
+
+            NavMeshAgent agent = mech.GetComponent<NavMeshAgent>();
+            if (agent != null)
+                agent.Warp(positions[i]);
+
+            MechLoadoutApplier applier = mech.GetComponent<MechLoadoutApplier>();
+            if (applier != null)
+                applier.ApplyLoadout(i);
+        }
     }
 
     private bool TooCloseToAny(Vector3 candidate, List<Vector3> points, float minDistance)
