@@ -70,7 +70,7 @@ public class UnitInfoPanel : MonoBehaviour
             return;
 
         if (nameText != null)
-            nameText.text = unit.gameObject.name;
+            nameText.text = unit.DisplayName;
 
         if (portraitImage != null)
         {

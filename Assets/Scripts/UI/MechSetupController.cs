@@ -15,7 +15,8 @@ public class MechSetupController : MonoBehaviour
     [Tooltip("Player Mech prefab — read directly (not instantiated) as the single source of truth for the live stats panel, so displayed numbers can never drift from what MechLoadoutApplier actually applies in-game.")]
     [SerializeField] private GameObject mechPrefabReference;
 
-    private static readonly string[] ModelNames = { "George", "Leela", "Mike", "Stan" };
+    // Kept in sync with in-game UnitInfoPanel names via MechLoadoutApplier.ModelNames.
+    private static readonly string[] ModelNames = MechLoadoutApplier.ModelNames;
     private static readonly Color[] ColorPresets =
     {
         Color.white,
@@ -177,6 +178,12 @@ public class MechSetupController : MonoBehaviour
         RefreshGroupSelection(fireModeButtons, (int)currentFireMode);
         RefreshGroupSelection(stanceButtons, (int)currentStance);
         RefreshGroupSelection(mapSizeButtons, currentMapSize.HasValue ? (int)currentMapSize.Value : -1);
+
+        // A previously earned ad bonus survives a trip back to the main menu (only LevelGenerator
+        // consumes/resets it, on the next mission start) — without this, a fresh MechSetupController
+        // instance has no memory of that and lets the button be clicked again pointlessly.
+        if (adBonusButton != null)
+            adBonusButton.interactable = loadout == null || !loadout.BonusHealthPickup;
     }
 
     private void NextModel()

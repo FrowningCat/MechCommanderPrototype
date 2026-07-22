@@ -11,6 +11,10 @@ public class MechLoadoutApplier : MonoBehaviour
         public float agentSpeed;
     }
 
+    // Shared with MechSetupController so the setup screen's model name label and the
+    // in-game UnitInfoPanel display name can never drift apart.
+    public static readonly string[] ModelNames = { "George", "Leela", "Mike", "Stan" };
+
     [Header("Model Variants (index-matched to setup screen)")]
     [SerializeField] private GameObject[] modelVariants;
 
@@ -168,7 +172,12 @@ public class MechLoadoutApplier : MonoBehaviour
         modelIndex = Mathf.Clamp(modelIndex, 0, modelPortraits.Length - 1);
 
         UnitSelectable unitSelectable = GetComponent<UnitSelectable>();
-        if (unitSelectable != null)
-            unitSelectable.SetPortrait(modelPortraits[modelIndex]);
+        if (unitSelectable == null)
+            return;
+
+        unitSelectable.SetPortrait(modelPortraits[modelIndex]);
+
+        if (ModelNames.Length > 0)
+            unitSelectable.SetDisplayName(ModelNames[Mathf.Clamp(modelIndex, 0, ModelNames.Length - 1)]);
     }
 }

@@ -11,6 +11,10 @@ public class MechMovement : MonoBehaviour
     private AudioSource footstepSource;
     private Animator animator;
 
+    // Used by RTSInputReader to keep formation slots far enough apart that agents
+    // don't get clamped onto overlapping NavMesh points on narrow paths.
+    public float AgentRadius => agent != null ? agent.radius : 0.5f;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();

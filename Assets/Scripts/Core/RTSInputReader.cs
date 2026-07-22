@@ -386,6 +386,13 @@ public class RTSInputReader : MonoBehaviour
 
         Vector3 moveRight = Vector3.Cross(Vector3.up, moveForward).normalized;
 
+        // NavMeshAgent radius on the Mech prefab (~3.16) is bigger than the old fixed
+        // 3f spacing, so grid slots could overlap even on open ground. Widen spacing to
+        // guarantee non-overlapping agents before NavMesh clamping ever comes into play.
+        float agentRadius = selectedMechs.Count > 0 ? selectedMechs[0].AgentRadius : 0.5f;
+        float minSeparation = agentRadius * 2f + 0.5f;
+        float spacing = Mathf.Max(formationSpacing, minSeparation);
+
         Vector3[] positions = new Vector3[count];
 
         for (int i = 0; i < count; i++)
@@ -393,18 +400,77 @@ public class RTSInputReader : MonoBehaviour
             int row = i / columns;
             int column = i % columns;
 
-            float xOffset = (column - (columns - 1) * 0.5f) * formationSpacing;
-            float zOffset = (row - (rows - 1) * 0.5f) * formationSpacing;
+            float xOffset = (column - (columns - 1) * 0.5f) * spacing;
+            float zOffset = (row - (rows - 1) * 0.5f) * spacing;
 
             Vector3 targetPosition =
                 centerPoint +
                 moveRight * xOffset -
                 moveForward * zOffset;
 
-            positions[i] = GetNearestNavMeshPoint(targetPosition);
+            Vector3 clamped = GetNearestNavMeshPoint(targetPosition);
+
+            positions[i] = ResolveOverlap(clamped, positions, i, minSeparation, moveForward, moveRight);
         }
 
         return positions;
+    }
+
+    // Narrow paths surrounded by water mean several formation slots can all get clamped
+    // by NavMesh.SamplePosition onto the same (or a nearly identical) nearest point on the
+    // walkable strip. When that happens, walk the candidate outward — preferring along the
+    // path's own direction (moveForward) over across it (moveRight), since across is far more
+    // likely to run straight into water — until it clears every already-placed position by
+    // at least minSeparation, or we give up and accept the closest point found.
+    private Vector3 ResolveOverlap(
+        Vector3 candidate,
+        Vector3[] placedPositions,
+        int placedCount,
+        float minSeparation,
+        Vector3 alongDir,
+        Vector3 acrossDir)
+    {
+        if (!IsTooClose(candidate, placedPositions, placedCount, minSeparation))
+            return candidate;
+
+        Vector3[] directions =
+        {
+            alongDir, -alongDir,
+            acrossDir, -acrossDir,
+            (alongDir + acrossDir).normalized, (alongDir - acrossDir).normalized,
+            (-alongDir + acrossDir).normalized, (-alongDir - acrossDir).normalized,
+        };
+
+        const int maxSteps = 6;
+
+        for (int step = 1; step <= maxSteps; step++)
+        {
+            float stepDistance = minSeparation * step;
+
+            foreach (Vector3 direction in directions)
+            {
+                Vector3 attempt = candidate + direction * stepDistance;
+
+                if (!NavMesh.SamplePosition(attempt, out NavMeshHit hit, 1f, NavMesh.AllAreas))
+                    continue;
+
+                if (!IsTooClose(hit.position, placedPositions, placedCount, minSeparation))
+                    return hit.position;
+            }
+        }
+
+        return candidate;
+    }
+
+    private static bool IsTooClose(Vector3 point, Vector3[] placedPositions, int placedCount, float minSeparation)
+    {
+        for (int i = 0; i < placedCount; i++)
+        {
+            if (Vector3.Distance(point, placedPositions[i]) < minSeparation)
+                return true;
+        }
+
+        return false;
     }
 
     private Vector3 GetNearestNavMeshPoint(Vector3 point)
